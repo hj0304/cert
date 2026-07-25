@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202607251324";
+const BUILD = "202607251610";
 
 const CERTS = {
   adsp: {
@@ -317,6 +317,64 @@ function recordResult(qid, correct, meta) {
     setQIndex(ix);
   }
 }
+
+/* ---------- 디자인 스킨 ---------- */
+const SKINS = [
+  { id: "bento", name: "기본", en: "Bento", dot: "#5b5bd6" },
+  { id: "glass", name: "글래스", en: "Glassmorphism", dot: "linear-gradient(135deg,#a8c0f0,#d8b8ee)" },
+  { id: "clay", name: "클레이", en: "Claymorphism", dot: "#7b6cf6" },
+  { id: "skeuo", name: "스큐어", en: "Skeuomorphic", dot: "linear-gradient(180deg,#f8f4e8,#8a7857)" },
+  { id: "grainy", name: "그레이니", en: "Grainy", dot: "#c96f3b" },
+  { id: "brutalist", name: "브루탈", en: "Brutalist", dot: "#ffe600" },
+  { id: "cyber", name: "사이버펑크", en: "Cyberpunk", dot: "linear-gradient(90deg,#00e5ff,#ff2bd6)" },
+  { id: "y2k", name: "Y2K", en: "Y2K", dot: "linear-gradient(135deg,#ff8ad8,#6ad0ff)" },
+  { id: "retro", name: "레트로퓨처", en: "Retro-Futurism", dot: "linear-gradient(180deg,#e0592a,#6a3577)" },
+  { id: "duo", name: "듀오톤", en: "Duotone", dot: "linear-gradient(90deg,#16123f 50%,#ffd150 50%)" },
+];
+
+function applySkin(id) {
+  if (!SKINS.some((s) => s.id === id)) id = "bento";
+  if (id === "bento") document.documentElement.removeAttribute("data-skin");
+  else document.documentElement.setAttribute("data-skin", id);
+  store.set("skin", id);
+  document.querySelectorAll(".skin-menu button").forEach((b) => b.classList.toggle("current", b.dataset.skin === id));
+}
+
+function initSkinPicker() {
+  const actions = document.querySelector(".topbar .actions");
+  if (!actions) return;
+  const wrap = document.createElement("div");
+  wrap.className = "skin-wrap";
+  const btn = document.createElement("button");
+  btn.className = "icon-btn";
+  btn.title = "디자인 스킨 변경";
+  btn.textContent = "🎨";
+  const menu = document.createElement("div");
+  menu.className = "skin-menu";
+  const cur = store.get("skin", "bento");
+  menu.innerHTML = SKINS.map((s) =>
+    `<button data-skin="${s.id}" class="${s.id === cur ? "current" : ""}">
+      <span class="dot" style="background:${s.dot}"></span>${s.name}<span class="skin-label-en">${s.en}</span>
+    </button>`
+  ).join("");
+  menu.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-skin]");
+    if (!b) return;
+    applySkin(b.dataset.skin);
+    menu.classList.remove("open");
+  });
+  btn.addEventListener("click", (e) => { e.stopPropagation(); menu.classList.toggle("open"); });
+  document.addEventListener("click", () => menu.classList.remove("open"));
+  wrap.appendChild(btn);
+  wrap.appendChild(menu);
+  actions.insertBefore(wrap, actions.firstChild);
+}
+
+(function initSkin() {
+  const id = store.get("skin", "bento");
+  if (id !== "bento" && SKINS.some((s) => s.id === id)) document.documentElement.setAttribute("data-skin", id);
+})();
+document.addEventListener("DOMContentLoaded", initSkinPicker);
 
 /* ---------- 테마 ---------- */
 function applyTheme(t) {

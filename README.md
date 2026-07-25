@@ -5,6 +5,7 @@ ADsP · 정보처리기사(예정) 기출 문제은행. **광고 없이, 깔끔�
 ## 특징
 
 - **Bento grid 대시보드** — 학습 통계, D-day, 오답노트, 북마크를 한눈에
+- **🎨 디자인 스킨 10종** — 기본 Bento 외에 Glassmorphism, Claymorphism, Skeuomorphic, Grainy, Brutalist, Cyberpunk, Y2K, Retro-Futurism, Duotone 중 취향대로 선택 (상단 🎨 버튼)
 - **연습 모드** — 문제별 "정답·해설 확인" 버튼으로 확인 (선택 없이 누르면 열람만 — 기록 미반영)
 - **실전 모드** — 전체 풀고 제출하면 채점, 과목별 점수 · 과락(40%) · 합격(60점) 판정
 - **해설 수록** — 1,359문제 중 94%에 해설 포함 (등록자 해설 + AI 해설, 위키 링크)
