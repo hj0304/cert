@@ -1,5 +1,8 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
+/* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
+const BUILD = "202607251313";
+
 const CERTS = {
   adsp: {
     id: "adsp",
@@ -247,7 +250,7 @@ function loadExamData(certId, round) {
   if (window.CERT_DATA[key]) return Promise.resolve(window.CERT_DATA[key]);
   return new Promise((resolve, reject) => {
     const s = document.createElement("script");
-    s.src = "data/" + certId + "/exam" + round + ".js";
+    s.src = "data/" + certId + "/exam" + round + ".js?v=" + BUILD;
     s.onload = () => {
       if (window.CERT_DATA[key]) resolve(window.CERT_DATA[key]);
       else reject(new Error("데이터 형식 오류: " + key));
