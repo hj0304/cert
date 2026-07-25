@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202607251610";
+const BUILD = "202607251620";
 
 const CERTS = {
   adsp: {
@@ -371,7 +371,9 @@ function initSkinPicker() {
 }
 
 (function initSkin() {
-  const id = store.get("skin", "bento");
+  // URL로 스킨 미리보기/공유 가능: ?skin=cyber (저장하지는 않음)
+  const urlSkin = new URLSearchParams(location.search).get("skin");
+  const id = urlSkin && SKINS.some((s) => s.id === urlSkin) ? urlSkin : store.get("skin", "bento");
   if (id !== "bento" && SKINS.some((s) => s.id === id)) document.documentElement.setAttribute("data-skin", id);
 })();
 document.addEventListener("DOMContentLoaded", initSkinPicker);
