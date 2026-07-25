@@ -39,7 +39,7 @@
     <section id="examView" style="display:none">
       <div class="exam-head">
         <div class="title">
-          <a class="btn ghost sm" href="exam.html?cert=adsp">← 회차 선택</a>
+          <a class="btn ghost sm" id="backToSetup" href="exam.html?cert=adsp">← 회차 선택</a>
           <h1 id="examTitle"></h1>
           <span class="pill accent" id="examModeBadge"></span>
         </div>
@@ -132,7 +132,7 @@
       <p id="resultNote" style="font-size:.82rem;color:var(--ink-3);margin-top:12px"></p>
       <div class="modal-actions">
         <button class="btn ghost" onclick="document.getElementById('resultModal').classList.remove('show')">틀린 문제 확인</button>
-        <a class="btn ghost" href="exam.html?cert=adsp&mode=wrong">오답노트 풀기</a>
+        <a class="btn ghost" id="goWrongNote" href="exam.html?cert=adsp&mode=wrong">오답노트 풀기</a>
         <a class="btn primary" href="index.html">홈으로</a>
       </div>
     </div>

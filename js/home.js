@@ -5,7 +5,6 @@
   const wrong = getWrongNote();
   const bookmarks = getBookmarks();
   const qIndex = getQIndex();
-  const adsp = CERTS.adsp;
 
   /* ---- 전체 통계 ---- */
   const qids = Object.keys(stats);
@@ -39,24 +38,27 @@
     .map((v, i) => `<span style="height:${Math.max(6, (v / max) * 100)}%" class="${i === 13 && v ? "hot" : v ? "hot" : ""}"></span>`)
     .join("");
 
-  /* ---- ADsP 진행률 & 회차 칩 ---- */
-  const adspIds = qids.filter((id) => qIndex[id] && qIndex[id].cert === "adsp");
-  const TOTAL = 560;
-  document.getElementById("adspSolved").textContent = adspIds.length;
-  document.getElementById("adspProgress").style.width = Math.min(100, (adspIds.length / TOTAL) * 100) + "%";
+  /* ---- 자격증별 진행률 & 회차 칩 ---- */
+  function renderCertCard(cert, solvedElId, progressElId, chipsElId) {
+    const ids = qids.filter((id) => qIndex[id] && qIndex[id].cert === cert.id);
+    const solvedEl = document.getElementById(solvedElId);
+    if (!solvedEl) return ids;
+    solvedEl.textContent = ids.length;
+    document.getElementById(progressElId).style.width = Math.min(100, (ids.length / cert.total) * 100) + "%";
 
-  const solvedByRound = {};
-  adspIds.forEach((id) => {
-    const r = qIndex[id].round;
-    solvedByRound[r] = (solvedByRound[r] || 0) + 1;
-  });
-  const chips = document.getElementById("adspChips");
-  chips.innerHTML = adsp.rounds
-    .map((r) => {
-      const done = solvedByRound[r] || 0;
-      return `<span class="chip ${done >= 40 ? "done" : ""}">${r}회${done ? ` · ${done}` : ""}</span>`;
-    })
-    .join("");
+    const solvedByRound = {};
+    ids.forEach((id) => { const r = qIndex[id].round; solvedByRound[r] = (solvedByRound[r] || 0) + 1; });
+    document.getElementById(chipsElId).innerHTML = cert.rounds
+      .map((r) => {
+        const done = solvedByRound[r] || 0;
+        const need = ((cert.roundInfo || {})[r] || {}).count || 50;
+        return `<span class="chip ${done >= need * 0.8 ? "done" : ""}">${roundLabel(r).replace(" (1·2회 통합)", "")}${done ? ` · ${done}` : ""}</span>`;
+      })
+      .join("");
+    return ids;
+  }
+  const adspIds = renderCertCard(CERTS.adsp, "adspSolved", "adspProgress", "adspChips");
+  const engIds = renderCertCard(CERTS.engineer, "engSolved", "engProgress", "engChips");
 
   /* ---- 오답노트 미리보기 ---- */
   const wrongRows = document.getElementById("wrongRows");
@@ -65,33 +67,38 @@
     wrongRows.innerHTML = preview
       .map((id) => {
         const m = qIndex[id];
-        return `<div class="row-item"><span>${m ? `<b>${m.round}회</b> ${m.number}번` : "문제 " + id}</span><span style="color:var(--red)">✗ ${stats[id] ? stats[id].w : 1}회</span></div>`;
+        const certName = m && CERTS[m.cert] ? CERTS[m.cert].name : "";
+        return `<div class="row-item"><span>${m ? `<b>${certName} ${roundLabel(m.round)}</b> ${m.number}번` : "문제 " + id}</span><span style="color:var(--red)">✗ ${stats[id] ? stats[id].w : 1}회</span></div>`;
       })
       .join("");
   }
 
-  /* ---- 과목별 정답률 ---- */
-  const bySubject = {};
-  adspIds.forEach((id) => {
-    const cat = qIndex[id].cat || "기타";
-    const s = (bySubject[cat] = bySubject[cat] || { a: 0, w: 0 });
-    s.a += stats[id].a;
-    s.w += stats[id].w;
-  });
+  /* ---- 과목별 정답률 (자격증 통합) ---- */
   const subjRows = document.getElementById("subjectRows");
-  const cats = Object.keys(bySubject);
-  if (cats.length) {
-    subjRows.innerHTML = adsp.subjects
-      .concat(cats.filter((c) => !adsp.subjects.includes(c)))
+  const rowsHtml = [];
+  [["adsp", adspIds], ["engineer", engIds]].forEach(([cid, ids]) => {
+    const cert = CERTS[cid];
+    const bySubject = {};
+    ids.forEach((id) => {
+      const cat = qIndex[id].cat || "기타";
+      const s = (bySubject[cat] = bySubject[cat] || { a: 0, w: 0 });
+      s.a += stats[id].a;
+      s.w += stats[id].w;
+    });
+    const cats = Object.keys(bySubject);
+    if (!cats.length) return;
+    rowsHtml.push(`<div class="row-item" style="border-top:none"><span style="color:var(--ink-3);font-size:.78rem;font-weight:700">${cert.name}</span></div>`);
+    cert.subjects
+      .concat(cats.filter((c) => !cert.subjects.includes(c)))
       .filter((c) => bySubject[c])
-      .map((c) => {
+      .forEach((c) => {
         const s = bySubject[c];
         const rate = s.a ? Math.round(((s.a - s.w) / s.a) * 100) : 0;
         const color = rate >= 60 ? "var(--green)" : rate >= 40 ? "var(--amber)" : "var(--red)";
-        return `<div class="row-item"><span><b>${esc(c)}</b></span><span style="color:${color};font-weight:800">${rate}%</span></div>`;
-      })
-      .join("");
-  }
+        rowsHtml.push(`<div class="row-item"><span><b>${esc(c)}</b></span><span style="color:${color};font-weight:800">${rate}%</span></div>`);
+      });
+  });
+  if (rowsHtml.length) subjRows.innerHTML = rowsHtml.join("");
 
   /* ---- D-day ---- */
   function renderDday() {
@@ -128,9 +135,9 @@
 
   /* ---- 이어서 풀기 ---- */
   const last = store.get("lastSession", null);
-  if (last && last.cert === "adsp") {
+  if (last && CERTS[last.cert]) {
     const btn = document.getElementById("continueBtn");
-    btn.textContent = `이어서 풀기 — ${last.round}회 ${last.number}번 →`;
-    btn.href = `exam.html?cert=adsp&round=${last.round}&mode=${last.mode || "practice"}#q${last.number}`;
+    btn.textContent = `이어서 풀기 — ${CERTS[last.cert].name} ${roundLabel(last.round)} ${last.number}번 →`;
+    btn.href = `exam.html?cert=${last.cert}&round=${last.round}&mode=${last.mode || "practice"}#q${last.number}`;
   }
 })();

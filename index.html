@@ -27,7 +27,8 @@
         </div>
         <div class="hero-foot">
           <a class="btn on-hero" id="continueBtn" href="exam.html?cert=adsp">ADsP 풀러 가기 →</a>
-          <a class="btn ghost-hero" href="exam.html?cert=adsp&mode=random">랜덤 20문제 퀴즈</a>
+          <a class="btn ghost-hero" href="exam.html?cert=adsp&mode=random">ADsP 랜덤 20제</a>
+          <a class="btn ghost-hero" href="exam.html?cert=engineer&mode=random">정처기 랜덤 20제</a>
         </div>
       </section>
 
@@ -58,32 +59,42 @@
       </a>
 
       <!-- 정처기 -->
-      <div class="card span-6" style="opacity:.75">
+      <a class="card span-6" href="exam.html?cert=engineer">
         <div class="cert-icon" style="background:var(--teal-soft)">💻</div>
-        <span class="pill muted" style="position:absolute;top:26px;right:26px">준비 중</span>
+        <span class="pill teal" style="position:absolute;top:26px;right:26px">진행 중</span>
         <h2>정보처리기사 <span style="font-weight:600;font-size:.9rem;color:var(--ink-3)">필기</span></h2>
-        <div class="desc">기출 문제 수집 예정 — 링크를 보내주시면 바로 담아드릴게요.</div>
-        <div class="empty-note" style="margin-top:22px">🚧 다음 업데이트에서 만나요</div>
-      </div>
+        <div class="desc">현행 출제기준 공개 기출 8회분 (2020~2022)</div>
+        <div class="progress-track"><div class="progress-fill" id="engProgress" style="width:0%"></div></div>
+        <div class="desc" style="margin-top:8px;font-size:.82rem"><span id="engSolved">0</span> / <span id="engTotal">799</span> 문제 학습</div>
+        <div class="round-chips" id="engChips"></div>
+      </a>
 
       <!-- 오답노트 -->
-      <a class="card span-4" href="exam.html?cert=adsp&mode=wrong">
+      <div class="card span-4">
         <div class="kicker">📕 오답노트</div>
         <div class="big-num"><span id="wrongNum">0</span><span class="unit">문제</span></div>
         <div class="desc">틀린 문제만 다시 풀어 약점을 없애요</div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <a class="btn sm ghost" href="exam.html?cert=adsp&mode=wrong">ADsP</a>
+          <a class="btn sm ghost" href="exam.html?cert=engineer&mode=wrong">정처기</a>
+        </div>
         <div class="rows" id="wrongRows"></div>
-      </a>
+      </div>
 
       <!-- 북마크 -->
-      <a class="card span-4" href="exam.html?cert=adsp&mode=bookmark">
+      <div class="card span-4">
         <div class="kicker">⭐ 북마크</div>
         <div class="big-num"><span id="bmNum">0</span><span class="unit">문제</span></div>
         <div class="desc">다시 보고 싶은 문제 모음</div>
-      </a>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <a class="btn sm ghost" href="exam.html?cert=adsp&mode=bookmark">ADsP</a>
+          <a class="btn sm ghost" href="exam.html?cert=engineer&mode=bookmark">정처기</a>
+        </div>
+      </div>
 
       <!-- 과목별 -->
       <div class="card span-4">
-        <div class="kicker">과목별 정답률 (ADsP)</div>
+        <div class="kicker">과목별 정답률</div>
         <div class="rows" id="subjectRows">
           <div class="empty-note">문제를 풀면 과목별 통계가 쌓여요</div>
         </div>

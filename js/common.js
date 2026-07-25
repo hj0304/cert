@@ -16,6 +16,7 @@ const CERTS = {
       33: { count: 44, short: 4 }, 32: { count: 50, short: 10 }, 31: { count: 20, short: 0 },
     },
     subjects: ["데이터 이해", "데이터 분석 기획", "데이터 분석"],
+    total: 560,
     ready: true,
   },
   engineer: {
@@ -25,11 +26,27 @@ const CERTS = {
     icon: "💻",
     passScore: 60,
     failScore: 40,
-    rounds: [],
-    subjects: [],
-    ready: false,
+    // 2020년 개정(현행 출제기준) 이후 공개 기출 전체.
+    // 2022년 3회부터 CBT 전환으로 기출 비공개 — 2026년까지 현행 기준 유지, 2027년 전면 개편 예정.
+    rounds: ["2022-2", "2022-1", "2021-3", "2021-2", "2021-1", "2020-4", "2020-3", "2020-1"],
+    roundInfo: {
+      "2022-2": { count: 100 }, "2022-1": { count: 100 },
+      "2021-3": { count: 100 }, "2021-2": { count: 99 }, "2021-1": { count: 100 },
+      "2020-4": { count: 100 }, "2020-3": { count: 100 }, "2020-1": { count: 100 },
+    },
+    subjects: ["소프트웨어 설계", "소프트웨어 개발", "데이터베이스 구축", "프로그래밍 언어 활용", "정보시스템 구축관리"],
+    total: 799,
+    ready: true,
   },
 };
+
+/* 회차 표시 라벨: 42 → "42회", "2020-1" → "2020년 1회" */
+function roundLabel(r) {
+  const s = String(r);
+  const m = s.match(/^(\d{4})-(\d)$/);
+  if (m) return m[1] + "년 " + m[2] + "회" + (s === "2020-1" ? " (1·2회 통합)" : "");
+  return s + "회";
+}
 
 /* ---------- localStorage helpers ---------- */
 const store = {

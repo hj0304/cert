@@ -5,7 +5,7 @@
   const certId = params.get("cert") || "adsp";
   const cert = CERTS[certId];
   const mode = params.get("mode") || (params.get("round") ? "practice" : null);
-  const round = params.get("round") ? parseInt(params.get("round"), 10) : null;
+  const round = params.get("round") || null; // ADsP: "42", 정처기: "2022-1"
 
   const $ = (id) => document.getElementById(id);
   const setupView = $("setupView"), examView = $("examView"), loadingView = $("loadingView");
@@ -49,7 +49,7 @@
             done ? done + "문제 학습함" : "",
           ].filter(Boolean).join(" · ");
           return `<div class="card round-card">
-            <h3>${r}회</h3>
+            <h3>${roundLabel(r)}</h3>
             <div class="meta">${metaBits || "아직 안 풀었어요"}</div>
             <div class="go-row">
               <a class="btn sm primary" href="exam.html?cert=${certId}&round=${r}&mode=${selMode}">${selMode === "exam" ? "실전 응시" : "연습 시작"}</a>
@@ -70,7 +70,7 @@
     if (round) {
       const data = await loadExamData(certId, round);
       questions = data.questions.map((q) => ({ ...q, round }));
-      title = cert.name + " " + round + "회";
+      title = cert.name + " " + roundLabel(round);
     } else if (mode === "random") {
       const all = [];
       for (const r of cert.rounds) {
@@ -89,9 +89,9 @@
         if (m && m.cert === certId) (byRound[m.round] = byRound[m.round] || []).push(String(id));
       });
       for (const r of Object.keys(byRound)) {
-        const data = await loadExamData(certId, parseInt(r, 10));
+        const data = await loadExamData(certId, r);
         data.questions.forEach((q) => {
-          if (byRound[r].includes(String(q.id))) questions.push({ ...q, round: parseInt(r, 10) });
+          if (byRound[r].includes(String(q.id))) questions.push({ ...q, round: r });
         });
       }
       title = cert.name + (mode === "wrong" ? " 오답노트" : " 북마크");
@@ -112,7 +112,7 @@
   function renderQuestion() {
     const Q = q();
     if (!Q) return;
-    $("qNumber").textContent = (mode === "random" || mode === "wrong" || mode === "bookmark" ? Q.round + "회 · " : "") + Q.number + "번";
+    $("qNumber").textContent = (mode === "random" || mode === "wrong" || mode === "bookmark" ? roundLabel(Q.round) + " · " : "") + Q.number + "번";
     $("qCategory").textContent = Q.category || "기타";
     $("qTypeBadge").style.display = Q.type === "short" ? "" : "none";
     $("qSubject").innerHTML = Q.subject;
@@ -419,6 +419,8 @@
       }
       loadingView.style.display = "none";
       examView.style.display = "block";
+      $("backToSetup").href = "exam.html?cert=" + certId;
+      $("goWrongNote").href = "exam.html?cert=" + certId + "&mode=wrong";
       $("examTitle").textContent = title;
       $("examModeBadge").textContent = isExamMode ? "실전 모드" : mode === "wrong" ? "오답 복습" : mode === "bookmark" ? "북마크" : mode === "random" ? "랜덤" : "연습 모드";
       // 해시로 특정 번호 이동 (#q17)
