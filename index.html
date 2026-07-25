@@ -69,6 +69,30 @@
         <div class="round-chips" id="engChips"></div>
       </a>
 
+      <!-- 오늘의 복습 (간격 반복) -->
+      <div class="card span-4">
+        <div class="kicker">🌱 오늘의 복습</div>
+        <div class="big-num"><span id="dueNum">0</span><span class="unit">문제</span></div>
+        <div class="desc">망각곡선에 맞춰 다시 볼 시간이 된 문제들 (1→3→7→21일 간격)</div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap" id="dueBtns">
+          <a class="btn sm ghost" id="dueAdsp" href="exam.html?cert=adsp&mode=review" style="display:none">ADsP <b id="dueAdspN"></b></a>
+          <a class="btn sm ghost" id="dueEng" href="exam.html?cert=engineer&mode=review" style="display:none">정처기 <b id="dueEngN"></b></a>
+          <span class="empty-note" id="dueEmpty" style="margin-top:0">아직 복습 대기 문제가 없어요</span>
+        </div>
+      </div>
+
+      <!-- 합격 예측 -->
+      <div class="card span-8">
+        <div class="kicker">🎯 합격 예측</div>
+        <div class="rows" id="predictRows">
+          <div class="empty-note">문제를 30개 이상 풀면 과목별 예상 점수와 과락 위험을 계산해드려요</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <a class="btn sm ghost" href="exam.html?cert=adsp&mode=weak">ADsP 약점 저격 20제</a>
+          <a class="btn sm ghost" href="exam.html?cert=engineer&mode=weak">정처기 약점 저격 20제</a>
+        </div>
+      </div>
+
       <!-- 오답노트 -->
       <div class="card span-4">
         <div class="kicker">📕 오답노트</div>

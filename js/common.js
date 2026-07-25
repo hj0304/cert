@@ -40,6 +40,37 @@ const CERTS = {
   },
 };
 
+/* 오늘 복습할 문제 (SRS due 도래) — certId 지정 시 해당 자격증만 */
+function getDueIds(certId) {
+  const stats = getStats();
+  const qIndex = getQIndex();
+  const now = Date.now();
+  return Object.keys(stats)
+    .filter((id) => stats[id].due && stats[id].due <= now)
+    .filter((id) => !certId || (qIndex[id] && qIndex[id].cert === certId))
+    .sort((a, b) => (stats[a].due || 0) - (stats[b].due || 0));
+}
+
+/* 과목별 성취도: {과목: {a, w, acc}} — 최근 기록일수록 가중 */
+function subjectPerformance(certId) {
+  const stats = getStats();
+  const qIndex = getQIndex();
+  const by = {};
+  const now = Date.now();
+  Object.keys(stats).forEach((id) => {
+    const m = qIndex[id];
+    if (!m || m.cert !== certId) return;
+    const s = stats[id];
+    // 30일 이상 지난 기록은 가중치 절반
+    const weight = s.t && now - s.t > 30 * 86400000 ? 0.5 : 1;
+    const o = (by[m.cat] = by[m.cat] || { a: 0, w: 0 });
+    o.a += s.a * weight;
+    o.w += s.w * weight;
+  });
+  Object.values(by).forEach((o) => { o.acc = o.a ? (o.a - o.w) / o.a : 0; });
+  return by;
+}
+
 /* 회차 표시 라벨: 42 → "42회", "2020-1" → "2020년 1회" */
 function roundLabel(r) {
   const s = String(r);
@@ -84,6 +115,10 @@ function setBookmarks(list) { store.set("bookmarks", [...new Set(list)]); }
 function getQIndex() { return store.get("qindex", {}); }
 function setQIndex(ix) { store.set("qindex", ix); }
 
+/* 간격 반복(Spaced Repetition) — 라이트너 방식.
+   맞히면 다음 복습 간격이 늘어나고(1→3→7→21일), 틀리면 1일로 리셋. */
+const SRS_INTERVALS = [1, 3, 7, 21]; // 일 단위
+
 function recordResult(qid, correct, meta) {
   const stats = getStats();
   const s = stats[qid] || { a: 0, w: 0 };
@@ -91,6 +126,8 @@ function recordResult(qid, correct, meta) {
   if (!correct) s.w += 1;
   s.last = correct ? "o" : "x";
   s.t = Date.now();
+  s.iv = correct ? Math.min((s.iv == null ? -1 : s.iv) + 1, SRS_INTERVALS.length - 1) : 0;
+  s.due = Date.now() + SRS_INTERVALS[s.iv] * 86400000;
   stats[qid] = s;
   setStats(stats);
 

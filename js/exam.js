@@ -16,7 +16,7 @@
   }
 
   /* ============ 회차 선택 화면 ============ */
-  if (!round && !["random", "wrong", "bookmark"].includes(mode)) {
+  if (!round && !["random", "wrong", "bookmark", "review", "weak"].includes(mode)) {
     loadingView.style.display = "none";
     setupView.style.display = "block";
     $("setupTitle").textContent = cert.name + " 기출문제";
@@ -71,14 +71,38 @@
       const data = await loadExamData(certId, round);
       questions = data.questions.map((q) => ({ ...q, round }));
       title = cert.name + " " + roundLabel(round);
-    } else if (mode === "random") {
+    } else if (mode === "random" || mode === "weak") {
       const all = [];
       for (const r of cert.rounds) {
         const data = await loadExamData(certId, r);
         data.questions.forEach((q) => { if (q.type === "choice") all.push({ ...q, round: r }); });
       }
-      questions = shuffle(all).slice(0, 20);
-      title = cert.name + " 랜덤 20문제";
+      if (mode === "random") {
+        questions = shuffle(all).slice(0, 20);
+        title = cert.name + " 랜덤 20문제";
+      } else {
+        questions = pickWeak(all, 20);
+        title = cert.name + " 약점 저격 20문제";
+      }
+    } else if (mode === "review") {
+      const due = getDueIds(certId);
+      const qIndex = getQIndex();
+      const byRound = {};
+      due.forEach((id) => {
+        const m = qIndex[id];
+        if (m) (byRound[m.round] = byRound[m.round] || []).push(String(id));
+      });
+      for (const r of Object.keys(byRound)) {
+        const data = await loadExamData(certId, r);
+        data.questions.forEach((q) => {
+          if (byRound[r].includes(String(q.id))) questions.push({ ...q, round: r });
+        });
+      }
+      // 복습 기한이 오래 지난 순
+      const order = {};
+      due.forEach((id, i) => (order[id] = i));
+      questions.sort((a, b) => (order[String(a.id)] || 0) - (order[String(b.id)] || 0));
+      title = cert.name + " 오늘의 복습";
     } else {
       // wrong / bookmark
       const ids = mode === "wrong" ? getWrongNote() : getBookmarks();
@@ -98,6 +122,31 @@
     }
   }
 
+  /* 약점 가중 추출: 과목 정답률이 낮을수록 + 최근 틀린 문제일수록 잘 뽑힘 */
+  function pickWeak(all, count) {
+    const perf = subjectPerformance(certId);
+    const stats = getStats();
+    const pool = all.map((q) => {
+      const p = perf[q.category];
+      let w = p ? 0.25 + (1 - p.acc) : 0.75; // 안 본 과목은 중간 가중치
+      const s = stats[String(q.id)];
+      if (s) w *= s.last === "x" ? 1.6 : 0.5; // 최근 틀림 ↑, 최근 맞힘 ↓
+      else w *= 1.2; // 안 풀어본 문제 약간 ↑
+      return { q, w };
+    });
+    const picked = [];
+    while (picked.length < count && pool.length) {
+      let total = 0;
+      for (const p of pool) total += p.w;
+      let r = Math.random() * total;
+      let idx = 0;
+      for (; idx < pool.length - 1; idx++) { r -= pool[idx].w; if (r <= 0) break; }
+      picked.push(pool[idx].q);
+      pool.splice(idx, 1);
+    }
+    return picked;
+  }
+
   /* ============ 상태 ============ */
   const isExamMode = mode === "exam";
   let cur = 0;
@@ -113,7 +162,8 @@
   function renderQuestion() {
     const Q = q();
     if (!Q) return;
-    $("qNumber").textContent = (mode === "random" || mode === "wrong" || mode === "bookmark" ? roundLabel(Q.round) + " · " : "") + Q.number + "번";
+    $("qNumber").textContent = (["random", "wrong", "bookmark", "review", "weak"].includes(mode) ? roundLabel(Q.round) + " · " : "") + Q.number + "번";
+    $("qRate").style.display = "none";
     $("qCategory").textContent = Q.category || "기타";
     $("qTypeBadge").style.display = Q.type === "short" ? "" : "none";
     $("qSubject").innerHTML = Q.subject;
@@ -258,6 +308,18 @@
       fb.className = "q-feedback peek";
       fb.textContent = "정답: " + [...ansSet].join(", ") + "번 (열람만 — 기록에 반영 안 됨)";
     }
+    showRate();
+  }
+
+  /* 전국 정답률 배지 (공개 후에만 — 실전감 유지) */
+  function showRate() {
+    const Q = q();
+    const el = $("qRate");
+    if (Q.rate == null || (Q.rateN || 0) < 30) { el.style.display = "none"; return; }
+    const cls = Q.rate >= 70 ? "green" : Q.rate >= 40 ? "amber" : "red";
+    el.className = "pill " + cls;
+    el.textContent = "전국 정답률 " + Q.rate + "%" + (Q.rate < 40 ? " 🔥" : "");
+    el.style.display = "";
   }
 
   /* 해설 표시 */
@@ -481,7 +543,10 @@
     .then(() => {
       if (!questions.length) {
         loadingView.innerHTML = `<p style='padding:60px 0;text-align:center;color:var(--ink-3)'>
-          ${mode === "wrong" ? "오답노트가 비어 있어요! 완벽하네요 👏" : mode === "bookmark" ? "북마크한 문제가 아직 없어요" : "문제를 찾지 못했어요"}
+          ${mode === "wrong" ? "오답노트가 비어 있어요! 완벽하네요 👏"
+            : mode === "bookmark" ? "북마크한 문제가 아직 없어요"
+            : mode === "review" ? "오늘 복습할 문제가 없어요! 내일 다시 와요 🌱<br/><span style='font-size:.85rem'>문제를 풀면 맞힌 건 1→3→7→21일 간격으로, 틀린 건 다음날 복습 목록에 떠요.</span>"
+            : "문제를 찾지 못했어요"}
           <br/><br/><a class="btn primary" href="index.html">홈으로</a></p>`;
         return;
       }
@@ -491,7 +556,7 @@
       $("goWrongNote").href = "exam.html?cert=" + certId + "&mode=wrong";
       if (mode === "wrong" || mode === "bookmark") $("aiExportBtn").style.display = "";
       $("examTitle").textContent = title;
-      $("examModeBadge").textContent = isExamMode ? "실전 모드" : mode === "wrong" ? "오답 복습" : mode === "bookmark" ? "북마크" : mode === "random" ? "랜덤" : "연습 모드";
+      $("examModeBadge").textContent = isExamMode ? "실전 모드" : mode === "wrong" ? "오답 복습" : mode === "bookmark" ? "북마크" : mode === "random" ? "랜덤" : mode === "review" ? "간격 복습" : mode === "weak" ? "약점 저격" : "연습 모드";
       // 해시로 특정 번호 이동 (#q17)
       const hm = location.hash.match(/^#q(\d+)$/);
       if (hm) {

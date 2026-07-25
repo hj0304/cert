@@ -133,11 +133,73 @@
   });
   renderDday();
 
+  /* ---- 오늘의 복습 (SRS) ---- */
+  const dueAdsp = getDueIds("adsp");
+  const dueEng = getDueIds("engineer");
+  document.getElementById("dueNum").textContent = dueAdsp.length + dueEng.length;
+  if (dueAdsp.length) {
+    document.getElementById("dueAdsp").style.display = "";
+    document.getElementById("dueAdspN").textContent = dueAdsp.length;
+  }
+  if (dueEng.length) {
+    document.getElementById("dueEng").style.display = "";
+    document.getElementById("dueEngN").textContent = dueEng.length;
+  }
+  if (dueAdsp.length || dueEng.length) document.getElementById("dueEmpty").style.display = "none";
+
+  /* ---- 합격 예측 ---- */
+  const predictRows = document.getElementById("predictRows");
+  const predictHtml = [];
+  ["adsp", "engineer"].forEach((cid) => {
+    const cert = CERTS[cid];
+    const perf = subjectPerformance(cid);
+    const attempted = Object.values(perf).reduce((n, o) => n + o.a, 0);
+    if (attempted < 30) return; // 표본 부족
+    const subjScores = cert.subjects.map((c) => {
+      const p = perf[c];
+      return { name: c, score: p && p.a >= 5 ? Math.round(p.acc * 100) : null };
+    });
+    const known = subjScores.filter((s) => s.score !== null);
+    if (!known.length) return;
+    const avg = Math.round(known.reduce((n, s) => n + s.score, 0) / known.length);
+    const fails = known.filter((s) => s.score < cert.failScore);
+    const pass = avg >= cert.passScore && !fails.length && known.length === cert.subjects.length;
+    const badge = pass
+      ? `<span class="pill green">합격권 ✓</span>`
+      : fails.length
+        ? `<span class="pill red">과락 위험: ${fails.map((f) => esc(f.name)).join(", ")}</span>`
+        : avg < cert.passScore
+          ? `<span class="pill amber">평균 ${cert.passScore}점까지 ${cert.passScore - avg}점</span>`
+          : `<span class="pill amber">모든 과목을 풀어보세요</span>`;
+    predictHtml.push(`<div class="row-item"><span><b>${cert.name}</b> 예상 <b style="font-size:1.05rem">${avg}점</b></span><span>${badge}</span></div>`);
+    subjScores.forEach((s) => {
+      if (s.score === null) {
+        predictHtml.push(`<div class="row-item"><span style="font-size:.84rem">${esc(s.name)}</span><span style="color:var(--ink-3);font-size:.8rem">표본 부족</span></div>`);
+      } else {
+        const color = s.score >= cert.passScore ? "var(--green)" : s.score >= cert.failScore ? "var(--amber)" : "var(--red)";
+        predictHtml.push(`<div class="row-item"><span style="font-size:.84rem">${esc(s.name)}</span><span style="color:${color};font-weight:800">${s.score}점</span></div>`);
+      }
+    });
+  });
+  if (predictHtml.length) predictRows.innerHTML = predictHtml.join("");
+
   /* ---- 이어서 풀기 ---- */
   const last = store.get("lastSession", null);
   if (last && CERTS[last.cert]) {
     const btn = document.getElementById("continueBtn");
     btn.textContent = `이어서 풀기 — ${CERTS[last.cert].name} ${roundLabel(last.round)} ${last.number}번 →`;
     btn.href = `exam.html?cert=${last.cert}&round=${last.round}&mode=${last.mode || "practice"}#q${last.number}`;
+  }
+
+  /* 복습 대기가 있으면 히어로에 CTA 추가 */
+  const totalDue = dueAdsp.length + dueEng.length;
+  if (totalDue) {
+    const foot = document.querySelector(".hero-foot");
+    const a = document.createElement("a");
+    a.className = "btn ghost-hero";
+    const target = dueAdsp.length >= dueEng.length ? "adsp" : "engineer";
+    a.href = `exam.html?cert=${target}&mode=review`;
+    a.textContent = `🌱 오늘의 복습 ${totalDue}문제`;
+    foot.insertBefore(a, foot.children[1]);
   }
 })();
