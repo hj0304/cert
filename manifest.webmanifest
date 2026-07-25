@@ -1,0 +1,13 @@
+{
+  "name": "CERT — 나만의 자격증 문제은행",
+  "short_name": "CERT",
+  "description": "ADsP·정보처리기사 기출 문제은행. 광고 없이, 깔끔하게.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f2ee",
+  "theme_color": "#5b5bd6",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

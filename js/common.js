@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202607251313";
+const BUILD = "202607251324";
 
 const CERTS = {
   adsp: {
@@ -73,6 +73,96 @@ function getStreak() {
     while (days[dayKey(d)]) { current++; d = new Date(d.getTime() - 86400000); }
   }
   return { current, best, todayCount: days[today] || 0 };
+}
+
+/* ---------- 복습 알림 ----------
+   서비스 워커는 localStorage를 못 읽으므로, 복습 스케줄(due 타임스탬프)을
+   IndexedDB에 미러링해두고 SW가 그걸 읽어 알림을 띄운다. */
+function idbSetKV(key, val) {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("cert-db", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => {
+      const db = r.result;
+      const tx = db.transaction("kv", "readwrite");
+      tx.objectStore("kv").put(val, key);
+      tx.oncomplete = () => { db.close(); res(); };
+      tx.onerror = () => { db.close(); rej(tx.error); };
+    };
+    r.onerror = () => rej(r.error);
+  });
+}
+
+function idbGetKV(key) {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("cert-db", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => {
+      const db = r.result;
+      const tx = db.transaction("kv", "readonly");
+      const rq = tx.objectStore("kv").get(key);
+      rq.onsuccess = () => { db.close(); res(rq.result); };
+      rq.onerror = () => { db.close(); rej(rq.error); };
+    };
+    r.onerror = () => rej(r.error);
+  });
+}
+
+async function syncReviewToIDB() {
+  if (!("indexedDB" in window)) return;
+  try {
+    const stats = getStats();
+    const dues = Object.values(stats).map((s) => s.due).filter(Boolean);
+    const prev = (await idbGetKV("review")) || {};
+    // lastNotified는 SW가 갱신했을 수 있으니 더 최신 값 유지
+    const mine = store.get("notifyLast", null);
+    const last = [prev.lastNotified, mine].filter(Boolean).sort().pop() || null;
+    if (last && last !== mine) store.set("notifyLast", last);
+    await idbSetKV("review", { enabled: store.get("notify", false), dues, lastNotified: last });
+  } catch (e) {}
+}
+
+function registerSW() {
+  if (!("serviceWorker" in navigator)) return Promise.resolve(null);
+  return navigator.serviceWorker.register("sw.js").catch(() => null);
+}
+
+/* 알림 토글. 반환: "on" | "off" | "denied" | "unsupported" */
+async function toggleNotify() {
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) return "unsupported";
+  if (store.get("notify", false)) {
+    store.set("notify", false);
+    await syncReviewToIDB();
+    return "off";
+  }
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") return "denied";
+  store.set("notify", true);
+  await registerSW();
+  await syncReviewToIDB();
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if ("periodicSync" in reg) {
+      const st = await navigator.permissions.query({ name: "periodic-background-sync" });
+      if (st.state === "granted") await reg.periodicSync.register("review-check", { minInterval: 12 * 3600 * 1000 });
+    }
+  } catch (e) { /* periodic sync 미지원 브라우저 — 방문 시 알림으로 폴백 */ }
+  return "on";
+}
+
+/* 사이트 방문 시 알림 체크 (모든 브라우저 폴백) */
+async function notifyOnVisit() {
+  if (!store.get("notify", false)) return;
+  if (!("serviceWorker" in navigator) || Notification.permission !== "granted") return;
+  const today = dayKey(new Date());
+  if (store.get("notifyLast", null) === today) return;
+  await registerSW();
+  await syncReviewToIDB();
+  const reg = await navigator.serviceWorker.ready;
+  if (getDueIds().length > 0 && reg.active) {
+    reg.active.postMessage({ type: "check-now" });
+    store.set("notifyLast", today); // SW쪽 lastNotified와 별개로 페이지 쪽에서도 하루 1회 제한
+  }
 }
 
 /* ---------- 학습 기록 백업 ---------- */
@@ -209,6 +299,9 @@ function recordResult(qid, correct, meta) {
   const dk = dayKey(new Date());
   days[dk] = (days[dk] || 0) + 1;
   store.set("days", days);
+
+  // 복습 스케줄을 알림용 IndexedDB에 미러링 (비동기, 실패 무시)
+  if (store.get("notify", false)) syncReviewToIDB();
 
   const wrong = getWrongNote();
   if (!correct) {

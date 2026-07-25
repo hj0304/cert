@@ -39,6 +39,30 @@
     if (!streak.todayCount) el.textContent += " (오늘 아직 0문제)";
   }
 
+  /* ---- 복습 알림 토글 ---- */
+  const notifyBtn = document.getElementById("notifyBtn");
+  const notifyHint = document.getElementById("notifyHint");
+  function renderNotifyBtn() {
+    const on = store.get("notify", false) && ("Notification" in window) && Notification.permission === "granted";
+    notifyBtn.textContent = on ? "🔕 복습 알림 끄기" : "🔔 복습 알림 켜기";
+    if (on) {
+      notifyHint.style.display = "";
+      notifyHint.textContent = "Chrome/Edge에선 백그라운드로도 하루 1회, 그 외 브라우저는 사이트를 열 때 알려드려요.";
+    } else notifyHint.style.display = "none";
+  }
+  notifyBtn.addEventListener("click", async () => {
+    const result = await toggleNotify();
+    if (result === "on") toast("복습 알림을 켰어요 🔔");
+    else if (result === "off") toast("복습 알림을 껐어요");
+    else if (result === "denied") toast("브라우저에서 알림 권한이 거부됐어요 — 주소창 자물쇠에서 허용해 주세요");
+    else toast("이 브라우저는 알림을 지원하지 않아요");
+    renderNotifyBtn();
+  });
+  renderNotifyBtn();
+
+  /* 알림이 켜져 있으면 방문 시 복습 체크 (하루 1회) */
+  notifyOnVisit();
+
   /* ---- 기록 내보내기/가져오기 ---- */
   document.getElementById("exportBtn").addEventListener("click", () => {
     exportRecords();

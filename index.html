@@ -6,8 +6,10 @@
   <title>CERT — 나만의 자격증 문제은행</title>
   <meta name="description" content="ADsP·정보처리기사 기출 문제은행. 광고 없이, 깔끔하게." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#5b5bd6" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-  <link rel="stylesheet" href="css/style.css?v=202607251313" />
+  <link rel="stylesheet" href="css/style.css?v=202607251324" />
 </head>
 <body>
   <div class="wrap">
@@ -83,6 +85,8 @@
           <a class="btn sm ghost" id="dueEng" href="exam.html?cert=engineer&mode=review" style="display:none">정처기 <b id="dueEngN"></b></a>
           <span class="empty-note" id="dueEmpty" style="margin-top:0">아직 복습 대기 문제가 없어요</span>
         </div>
+        <button class="btn sm ghost" id="notifyBtn" style="margin-top:10px">🔔 복습 알림 켜기</button>
+        <div class="desc" id="notifyHint" style="font-size:.76rem;margin-top:8px;display:none"></div>
       </div>
 
       <!-- 합격 예측 -->
@@ -135,7 +139,7 @@
     </footer>
   </div>
 
-  <script src="js/common.js?v=202607251313"></script>
-  <script src="js/home.js?v=202607251313"></script>
+  <script src="js/common.js?v=202607251324"></script>
+  <script src="js/home.js?v=202607251324"></script>
 </body>
 </html>
