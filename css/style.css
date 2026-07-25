@@ -332,6 +332,23 @@ a.card { text-decoration: none; color: inherit; display: block; }
 .q-feedback { margin-top: 18px; padding: 14px 18px; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.95rem; display: none; }
 .q-feedback.ok { display: block; background: var(--green-soft); color: var(--green); }
 .q-feedback.no { display: block; background: var(--red-soft); color: var(--red); }
+.q-feedback.peek { display: block; background: var(--amber-soft); color: var(--amber); }
+
+/* 해설 */
+.explain-box { margin-top: 14px; }
+.explain-body { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.explain-item {
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 16px 18px;
+  font-size: 0.9rem; color: var(--ink-2); line-height: 1.75;
+}
+.explain-item p { margin: 0 0 8px; }
+.explain-item p:last-child { margin-bottom: 0; }
+.explain-item ul, .explain-item ol { padding-left: 20px; margin: 6px 0; }
+.explain-item table { border-collapse: collapse; margin: 8px 0; max-width: 100%; }
+.explain-item td, .explain-item th { border: 1px solid var(--line); padding: 5px 9px; font-size: 0.85rem; }
+.explain-tag { font-size: 0.76rem; font-weight: 800; color: var(--ink-3); margin-bottom: 8px; letter-spacing: 0.02em; }
+.explain-warn { font-weight: 600; color: var(--ink-3); }
 
 .wiki-links { margin-top: 16px; font-size: 0.85rem; color: var(--ink-3); }
 .wiki-links a { color: var(--accent-ink); text-decoration: none; font-weight: 600; margin-right: 10px; }

@@ -104,6 +104,7 @@
   let submitted = false;
   const sel = {};      // qid -> Set(선택 번호)
   const graded = {};   // qid -> true(정답)/false — 채점된 문제만
+  const peeked = {};   // qid -> true — 답만 열람(기록 미반영)
   let fontScale = 1;
 
   /* ============ 렌더링 ============ */
@@ -145,11 +146,7 @@
         if (mySel.has(n)) el.classList.add("selected");
         el.addEventListener("click", () => onPick(n));
       });
-      if (Q.id in graded) revealChoiceResult();
-      if ((Q.answer || []).length > 1) {
-        fb.className = "q-feedback";
-        $("qCategory").insertAdjacentHTML("afterend", "");
-      }
+      if (Q.id in graded || peeked[Q.id]) revealChoiceResult();
     } else {
       list.style.display = "none";
       list.innerHTML = "";
@@ -166,7 +163,9 @@
       }
     }
 
-    $("checkBtn").style.display = (!isExamMode && Q.type === "choice" && !(Q.id in graded) && (Q.answer || []).length > 1) ? "" : "none";
+    renderExplain();
+    $("checkBtn").style.display =
+      (Q.type === "choice" && !(Q.id in graded) && !peeked[Q.id] && (!isExamMode || submitted)) ? "" : "none";
     $("prevBtn").disabled = cur === 0;
     $("nextBtn").textContent = cur === questions.length - 1 ? "끝 ✓" : "다음 →";
 
@@ -206,38 +205,37 @@
 
   function onPick(n) {
     const Q = q();
-    if (Q.id in graded && !isExamMode) return; // 이미 채점됨
-    if (submitted) return;
+    if (Q.id in graded || peeked[Q.id] || submitted) return; // 이미 공개된 문제
     const multi = (Q.answer || []).length > 1;
     const s = (sel[Q.id] = sel[Q.id] || new Set());
     if (multi) {
       s.has(n) ? s.delete(n) : s.add(n);
-      // 다시 그려서 선택 표시
-      $("choiceList").querySelectorAll(".choice").forEach((el) => {
-        el.classList.toggle("selected", s.has(parseInt(el.dataset.n, 10)));
-      });
-      renderPalette();
-      return; // multi는 채점하기 버튼으로
+    } else {
+      s.clear(); s.add(n);
     }
-    s.clear(); s.add(n);
     $("choiceList").querySelectorAll(".choice").forEach((el) => {
       el.classList.toggle("selected", s.has(parseInt(el.dataset.n, 10)));
     });
-    if (isExamMode) { renderPalette(); return; }
-    gradeChoice();
+    renderPalette();
   }
 
-  function gradeChoice(silent) {
+  /* "정답·해설 확인" — 선택했으면 채점(기록 반영), 선택 안 했으면 열람만(기록 미반영) */
+  function checkAction() {
     const Q = q();
+    if (Q.type !== "choice" || Q.id in graded || peeked[Q.id]) return;
     const ans = (Q.answer || []).slice().sort().join(",");
     if (!ans) { toast("정답 정보가 없는 문제예요"); return; }
     const mine = [...(sel[Q.id] || [])].sort().join(",");
-    if (!mine) { toast("보기를 먼저 선택하세요"); return; }
-    const correct = mine === ans;
-    graded[Q.id] = correct;
-    recordResult(String(Q.id), correct, meta(Q));
+    if (mine) {
+      graded[Q.id] = mine === ans;
+      recordResult(String(Q.id), graded[Q.id], meta(Q));
+    } else {
+      peeked[Q.id] = true; // 답만 보기 — 통계에 안 잡힘
+    }
     revealChoiceResult();
-    if (!silent) renderPalette();
+    renderExplain();
+    $("checkBtn").style.display = "none";
+    renderPalette();
   }
 
   function revealChoiceResult() {
@@ -252,9 +250,31 @@
       else el.classList.add("dim");
     });
     const fb = $("qFeedback");
-    const ok = graded[Q.id];
-    fb.className = "q-feedback " + (ok ? "ok" : "no");
-    fb.textContent = ok ? "정답이에요! ✓" : "아쉬워요 — 정답은 " + [...ansSet].join(", ") + "번";
+    if (Q.id in graded) {
+      const ok = graded[Q.id];
+      fb.className = "q-feedback " + (ok ? "ok" : "no");
+      fb.textContent = ok ? "정답이에요! ✓" : "아쉬워요 — 정답은 " + [...ansSet].join(", ") + "번";
+    } else {
+      fb.className = "q-feedback peek";
+      fb.textContent = "정답: " + [...ansSet].join(", ") + "번 (열람만 — 기록에 반영 안 됨)";
+    }
+  }
+
+  /* 해설 표시 */
+  function renderExplain() {
+    const Q = q();
+    const box = $("explainBox"), body = $("explainBody");
+    const revealed = Q.id in graded || peeked[Q.id] || (submitted && Q.type === "choice");
+    const ex = Q.explain || {};
+    const hasContent = (ex.user && ex.user.length) || (ex.ai && ex.ai.length);
+    if (!revealed || !hasContent) { box.style.display = "none"; body.style.display = "none"; return; }
+    box.style.display = "";
+    body.style.display = "none";
+    $("explainToggle").textContent = "💡 해설 보기";
+    let html = "";
+    (ex.user || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">📝 등록자 해설</div>${c}</div>`; });
+    (ex.ai || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">🤖 AI 해설 <span class="explain-warn">— 부정확할 수 있어요</span></div>${c}</div>`; });
+    body.innerHTML = html;
   }
 
   function showShortAnswer(focusGrade = true) {
@@ -265,16 +285,20 @@
     rev.dataset.qid = Q.id;
     $("shortShowBtn").style.display = "none";
     if (!(Q.id in graded) && focusGrade) $("selfGrade").style.display = "flex";
+    peeked[Q.id] = peeked[Q.id] || !(Q.id in graded);
+    renderExplain();
   }
 
   function selfGradeShort(ok) {
     const Q = q();
     graded[Q.id] = ok;
+    delete peeked[Q.id];
     recordResult(String(Q.id), ok, meta(Q));
     $("selfGrade").style.display = "none";
     const fb = $("qFeedback");
     fb.className = "q-feedback " + (ok ? "ok" : "no");
     fb.textContent = ok ? "맞았어요! ✓" : "괜찮아요, 오답노트에 담아뒀어요";
+    renderExplain();
     renderPalette();
   }
 
@@ -367,7 +391,13 @@
     if (cur < questions.length - 1) { cur++; renderQuestion(); }
     else if (!submitted) submit();
   });
-  $("checkBtn").addEventListener("click", () => gradeChoice());
+  $("checkBtn").addEventListener("click", checkAction);
+  $("explainToggle").addEventListener("click", () => {
+    const body = $("explainBody");
+    const show = body.style.display === "none";
+    body.style.display = show ? "" : "none";
+    $("explainToggle").textContent = show ? "💡 해설 접기" : "💡 해설 보기";
+  });
   $("submitBtn").addEventListener("click", submit);
   $("bmBtn").addEventListener("click", () => {
     const Q = q();
@@ -383,6 +413,44 @@
     updateBmBtn();
     renderPalette();
   });
+  /* AI 질문용 마크다운 복사 (비용 0 — Claude/ChatGPT 앱에 붙여넣기) */
+  function htmlToText(h) {
+    const d = document.createElement("div");
+    d.innerHTML = String(h || "").replace(/<img[^>]*>/g, "[이미지]").replace(/<br\s*\/?>/gi, "\n");
+    return d.textContent.replace(/\s+\n/g, "\n").trim();
+  }
+  $("aiExportBtn").addEventListener("click", () => {
+    const lines = [
+      `${cert.fullName} 공부 중이야. 아래는 내가 틀렸거나 다시 보려는 문제들이야.`,
+      `각 문제마다 ① 정답인 이유 ② 나머지 보기가 틀린 이유 ③ 관련 핵심 개념을 간단히 설명해주고, 마지막에 내 약점 주제와 보완 학습 방향을 정리해줘.`,
+      ``,
+    ];
+    questions.forEach((Q, i) => {
+      lines.push(`## ${i + 1}. [${Q.category}] ${htmlToText(Q.subject)}`);
+      if (Q.extra) lines.push(htmlToText(Q.extra));
+      if (Q.type === "choice") {
+        Q.choices.forEach((c) => lines.push(`${c.n}) ${htmlToText(c.html)}`));
+        lines.push(`정답: ${(Q.answer || []).join(", ")}번`);
+      } else {
+        lines.push(`(단답형) 정답: ${Q.shortAnswer || "?"}`);
+      }
+      lines.push(``);
+    });
+    const text = lines.join("\n");
+    const done = () => toast(`${questions.length}문제를 복사했어요 — Claude/ChatGPT에 붙여넣으세요`);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+    } else fallbackCopy(text, done);
+  });
+  function fallbackCopy(text, done) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) { toast("복사에 실패했어요"); }
+    document.body.removeChild(ta);
+  }
+
   $("shortShowBtn").addEventListener("click", () => {
     if (isExamMode && !submitted) { toast("실전 모드에선 제출 후에 볼 수 있어요"); return; }
     showShortAnswer();
@@ -404,7 +472,7 @@
       if (q().choices.some((c) => c.n === n)) onPick(n);
     } else if (e.key === "ArrowLeft" && cur > 0) { cur--; renderQuestion(); }
     else if (e.key === "ArrowRight" && cur < questions.length - 1) { cur++; renderQuestion(); }
-    else if (e.key === "Enter" && q() && q().type === "choice" && !(q().id in graded) && !isExamMode) gradeChoice();
+    else if (e.key === "Enter" && q() && q().type === "choice" && !(q().id in graded) && !isExamMode) checkAction();
     else if (e.key.toLowerCase() === "b") $("bmBtn").click();
   });
 
@@ -421,6 +489,7 @@
       examView.style.display = "block";
       $("backToSetup").href = "exam.html?cert=" + certId;
       $("goWrongNote").href = "exam.html?cert=" + certId + "&mode=wrong";
+      if (mode === "wrong" || mode === "bookmark") $("aiExportBtn").style.display = "";
       $("examTitle").textContent = title;
       $("examModeBadge").textContent = isExamMode ? "실전 모드" : mode === "wrong" ? "오답 복습" : mode === "bookmark" ? "북마크" : mode === "random" ? "랜덤" : "연습 모드";
       // 해시로 특정 번호 이동 (#q17)
