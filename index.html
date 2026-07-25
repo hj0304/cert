@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CERT — 나만의 자격증 문제은행</title>
+  <meta name="description" content="ADsP·정보처리기사 기출 문제은행. 광고 없이, 깔끔하게." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="index.html"><span class="logo">🎓</span>CERT<span style="color:var(--ink-3);font-weight:600;font-size:.9rem">문제은행</span></a>
+      <div class="actions">
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="다크모드 전환">🌙</button>
+      </div>
+    </header>
+
+    <main class="bento">
+      <!-- HERO -->
+      <section class="card hero">
+        <div>
+          <div class="kicker">MY STUDY DASHBOARD</div>
+          <h1 id="heroMsg">오늘도 한 걸음,<br />합격에 가까워지는 중</h1>
+        </div>
+        <div class="hero-foot">
+          <a class="btn on-hero" id="continueBtn" href="exam.html?cert=adsp">ADsP 풀러 가기 →</a>
+          <a class="btn ghost-hero" href="exam.html?cert=adsp&mode=random">랜덤 20문제 퀴즈</a>
+        </div>
+      </section>
+
+      <!-- D-DAY -->
+      <div class="card span-4 clickable" id="ddayCard" title="클릭해서 시험일 설정">
+        <div class="kicker">D-DAY</div>
+        <div class="big-num" id="ddayNum">설정</div>
+        <div class="desc" id="ddayDesc">시험일을 설정해 보세요</div>
+      </div>
+
+      <!-- 정답률 -->
+      <div class="card span-4">
+        <div class="kicker">전체 정답률</div>
+        <div class="big-num"><span id="accNum">–</span><span class="unit">%</span></div>
+        <div class="desc"><span id="solvedNum">0</span>문제 풀이 · <span id="wrongTotal">0</span>개 오답</div>
+        <div class="mini-bars" id="accBars"></div>
+      </div>
+
+      <!-- ADsP -->
+      <a class="card span-6" href="exam.html?cert=adsp">
+        <div class="cert-icon" style="background:var(--accent-soft)">📊</div>
+        <span class="pill accent" style="position:absolute;top:26px;right:26px">진행 중</span>
+        <h2>ADsP</h2>
+        <div class="desc">데이터분석 준전문가 · 기출 12회분 (31~42회)</div>
+        <div class="progress-track"><div class="progress-fill" id="adspProgress" style="width:0%"></div></div>
+        <div class="desc" style="margin-top:8px;font-size:.82rem"><span id="adspSolved">0</span> / <span id="adspTotal">560</span> 문제 학습</div>
+        <div class="round-chips" id="adspChips"></div>
+      </a>
+
+      <!-- 정처기 -->
+      <div class="card span-6" style="opacity:.75">
+        <div class="cert-icon" style="background:var(--teal-soft)">💻</div>
+        <span class="pill muted" style="position:absolute;top:26px;right:26px">준비 중</span>
+        <h2>정보처리기사 <span style="font-weight:600;font-size:.9rem;color:var(--ink-3)">필기</span></h2>
+        <div class="desc">기출 문제 수집 예정 — 링크를 보내주시면 바로 담아드릴게요.</div>
+        <div class="empty-note" style="margin-top:22px">🚧 다음 업데이트에서 만나요</div>
+      </div>
+
+      <!-- 오답노트 -->
+      <a class="card span-4" href="exam.html?cert=adsp&mode=wrong">
+        <div class="kicker">📕 오답노트</div>
+        <div class="big-num"><span id="wrongNum">0</span><span class="unit">문제</span></div>
+        <div class="desc">틀린 문제만 다시 풀어 약점을 없애요</div>
+        <div class="rows" id="wrongRows"></div>
+      </a>
+
+      <!-- 북마크 -->
+      <a class="card span-4" href="exam.html?cert=adsp&mode=bookmark">
+        <div class="kicker">⭐ 북마크</div>
+        <div class="big-num"><span id="bmNum">0</span><span class="unit">문제</span></div>
+        <div class="desc">다시 보고 싶은 문제 모음</div>
+      </a>
+
+      <!-- 과목별 -->
+      <div class="card span-4">
+        <div class="kicker">과목별 정답률 (ADsP)</div>
+        <div class="rows" id="subjectRows">
+          <div class="empty-note">문제를 풀면 과목별 통계가 쌓여요</div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <span>CERT 문제은행 — 개인 학습용 · 광고 없음</span>
+      <span>문제 출처: <a href="https://newbt.kr" target="_blank" rel="noopener">newbt.kr</a> (복원 기출)</span>
+    </footer>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

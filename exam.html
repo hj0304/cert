@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>문제 풀이 — CERT 문제은행</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="index.html"><span class="logo">🎓</span>CERT<span style="color:var(--ink-3);font-weight:600;font-size:.9rem">문제은행</span></a>
+      <div class="actions">
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="다크모드 전환">🌙</button>
+      </div>
+    </header>
+
+    <!-- 회차 선택 화면 -->
+    <section id="setupView" style="display:none">
+      <div class="exam-head">
+        <div class="title">
+          <h1 id="setupTitle">ADsP 기출문제</h1>
+          <span class="pill accent" id="setupCount"></span>
+        </div>
+        <div class="seg" id="modeSeg">
+          <button data-mode="practice" class="on">연습 모드</button>
+          <button data-mode="exam">실전 모드</button>
+        </div>
+      </div>
+      <p style="color:var(--ink-2);font-size:.92rem;margin-bottom:6px">
+        <b>연습 모드</b>는 한 문제씩 즉시 채점, <b>실전 모드</b>는 전부 푼 뒤 한 번에 채점해요 (합격 60점 · 과목별 과락 40%).
+      </p>
+      <div class="setup-grid" id="roundGrid"></div>
+    </section>
+
+    <!-- 풀이 화면 -->
+    <section id="examView" style="display:none">
+      <div class="exam-head">
+        <div class="title">
+          <a class="btn ghost sm" href="exam.html?cert=adsp">← 회차 선택</a>
+          <h1 id="examTitle"></h1>
+          <span class="pill accent" id="examModeBadge"></span>
+        </div>
+        <div class="seg">
+          <button id="fontDown" title="글자 작게">가−</button>
+          <button id="fontUp" title="글자 크게">가+</button>
+        </div>
+      </div>
+
+      <div class="exam-layout">
+        <div>
+          <article class="q-card" id="qCard">
+            <div class="q-meta">
+              <span class="q-number" id="qNumber"></span>
+              <span class="pill muted" id="qCategory"></span>
+              <span class="pill amber" id="qTypeBadge" style="display:none">단답형</span>
+              <button class="icon-btn" id="bmBtn" style="margin-left:auto;width:32px;height:32px" title="북마크 (B)">☆</button>
+            </div>
+            <div class="q-subject" id="qSubject"></div>
+            <div class="q-extra" id="qExtra"></div>
+
+            <ul class="choices" id="choiceList"></ul>
+
+            <div class="short-box" id="shortBox" style="display:none">
+              <textarea id="shortInput" placeholder="답을 적어보세요 (자가 채점)"></textarea>
+              <div class="short-answer-reveal" id="shortReveal" style="display:none"></div>
+              <div class="self-grade" id="selfGrade" style="display:none">
+                <button class="btn sm primary" id="selfOk">맞았어요 ✓</button>
+                <button class="btn sm ghost" id="selfNo">틀렸어요 ✗</button>
+              </div>
+              <div style="margin-top:12px">
+                <button class="btn sm ghost" id="shortShowBtn">정답 보기</button>
+              </div>
+            </div>
+
+            <div class="q-feedback" id="qFeedback"></div>
+            <div class="wiki-links" id="wikiLinks"></div>
+          </article>
+
+          <div class="q-nav">
+            <button class="btn ghost" id="prevBtn">← 이전</button>
+            <div class="mid">
+              <button class="btn ghost" id="checkBtn">채점하기</button>
+            </div>
+            <button class="btn primary" id="nextBtn">다음 →</button>
+          </div>
+        </div>
+
+        <aside class="side-panel">
+          <div class="palette-card">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <h3>답안지</h3>
+              <span class="timer-box" id="timer">00:00</span>
+            </div>
+            <div class="palette-legend">
+              <span><i style="background:var(--accent)"></i>선택함</span>
+              <span><i style="background:var(--green)"></i>정답</span>
+              <span><i style="background:var(--red)"></i>오답</span>
+            </div>
+            <div class="palette" id="palette"></div>
+          </div>
+          <div class="side-actions">
+            <button class="btn primary" id="submitBtn">제출하고 채점하기</button>
+            <a class="btn ghost" href="index.html">홈으로</a>
+          </div>
+          <div class="palette-card" style="font-size:.78rem;color:var(--ink-3);line-height:1.7">
+            <b style="color:var(--ink-2)">단축키</b><br />
+            1–5 보기 선택 · ←/→ 이동<br />
+            Enter 채점 · B 북마크
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 로딩/오류 -->
+    <section id="loadingView"><p style="color:var(--ink-3);padding:60px 0;text-align:center">불러오는 중…</p></section>
+  </div>
+
+  <!-- 결과 모달 -->
+  <div class="modal-back" id="resultModal">
+    <div class="modal">
+      <div class="kicker" style="font-size:.78rem;font-weight:700;letter-spacing:.08em;color:var(--ink-3)">RESULT</div>
+      <h2 id="resultTitle">채점 결과</h2>
+      <div class="result-score"><span id="resultScore">0</span><span style="font-size:1.2rem;color:var(--ink-3)">점</span></div>
+      <div id="resultBadge"></div>
+      <table class="result-table">
+        <thead><tr><th>과목</th><th style="text-align:right">맞음</th><th style="text-align:right">문항</th><th style="text-align:right">점수</th></tr></thead>
+        <tbody id="resultBody"></tbody>
+      </table>
+      <p id="resultNote" style="font-size:.82rem;color:var(--ink-3);margin-top:12px"></p>
+      <div class="modal-actions">
+        <button class="btn ghost" onclick="document.getElementById('resultModal').classList.remove('show')">틀린 문제 확인</button>
+        <a class="btn ghost" href="exam.html?cert=adsp&mode=wrong">오답노트 풀기</a>
+        <a class="btn primary" href="index.html">홈으로</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/exam.js"></script>
+</body>
+</html>
