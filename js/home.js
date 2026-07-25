@@ -18,25 +18,41 @@
   document.getElementById("wrongNum").textContent = wrong.length;
   document.getElementById("bmNum").textContent = bookmarks.length;
 
-  /* 최근 학습 추이 바 (최근 14일, 일별 풀이 수) */
+  /* 최근 학습 추이 바 (최근 14일, 일자별 로그 기반) */
   const bars = document.getElementById("accBars");
-  const byDay = {};
-  qids.forEach((id) => {
-    if (!stats[id].t) return;
-    const d = new Date(stats[id].t);
-    const key = d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate();
-    byDay[key] = (byDay[key] || 0) + 1;
-  });
+  const dayLog = store.get("days", {});
   const days = [];
   for (let i = 13; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    days.push(byDay[d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate()] || 0);
+    days.push(dayLog[dayKey(new Date(Date.now() - i * 86400000))] || 0);
   }
   const max = Math.max(...days, 1);
   bars.innerHTML = days
-    .map((v, i) => `<span style="height:${Math.max(6, (v / max) * 100)}%" class="${i === 13 && v ? "hot" : v ? "hot" : ""}"></span>`)
+    .map((v) => `<span style="height:${Math.max(6, (v / max) * 100)}%" class="${v ? "hot" : ""}"></span>`)
     .join("");
+
+  /* ---- 스트릭 배지 ---- */
+  const streak = getStreak();
+  if (streak.current > 0) {
+    const el = document.getElementById("streakBadge");
+    el.style.display = "";
+    el.textContent = `🔥 ${streak.current}일 연속` + (streak.best > streak.current ? ` · 최고 ${streak.best}일` : streak.current >= 3 ? " — 자기최고!" : "");
+    if (!streak.todayCount) el.textContent += " (오늘 아직 0문제)";
+  }
+
+  /* ---- 기록 내보내기/가져오기 ---- */
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    exportRecords();
+    toast("학습 기록을 JSON 파일로 저장했어요");
+  });
+  const fileInput = document.getElementById("importFile");
+  document.getElementById("importBtn").addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    if (!fileInput.files.length) return;
+    importRecords(fileInput.files[0], (ok) => {
+      if (ok) { toast("가져오기 완료! 새로고침합니다"); setTimeout(() => location.reload(), 800); }
+      fileInput.value = "";
+    });
+  });
 
   /* ---- 자격증별 진행률 & 회차 칩 ---- */
   function renderCertCard(cert, solvedElId, progressElId, chipsElId) {

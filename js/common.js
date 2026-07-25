@@ -40,6 +40,76 @@ const CERTS = {
   },
 };
 
+/* 로컬 기준 일자 키: "2026-07-25" */
+function dayKey(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+/* 학습 스트릭: {current, best, todayCount}
+   오늘 안 풀었어도 어제까지 이어졌으면 스트릭은 살아있는 것으로 계산 */
+function getStreak() {
+  const days = store.get("days", {});
+  const keys = Object.keys(days).sort();
+  if (!keys.length) return { current: 0, best: 0, todayCount: 0 };
+
+  let best = 0, run = 0, prev = null;
+  for (const k of keys) {
+    if (prev) {
+      const gap = Math.round((new Date(k + "T00:00:00") - new Date(prev + "T00:00:00")) / 86400000);
+      run = gap === 1 ? run + 1 : 1;
+    } else run = 1;
+    if (run > best) best = run;
+    prev = k;
+  }
+
+  const today = dayKey(new Date());
+  const yest = dayKey(new Date(Date.now() - 86400000));
+  let current = 0;
+  if (days[today] || days[yest]) {
+    let d = days[today] ? new Date() : new Date(Date.now() - 86400000);
+    while (days[dayKey(d)]) { current++; d = new Date(d.getTime() - 86400000); }
+  }
+  return { current, best, todayCount: days[today] || 0 };
+}
+
+/* ---------- 학습 기록 백업 ---------- */
+const BACKUP_KEYS = ["stats", "wrong", "bookmarks", "qindex", "days", "dday", "lastSession"];
+
+function exportRecords() {
+  const data = {};
+  BACKUP_KEYS.forEach((k) => {
+    const v = store.get(k, null);
+    if (v !== null) data[k] = v;
+  });
+  const payload = { app: "cert-bank", version: 1, exportedAt: new Date().toISOString(), data };
+  const blob = new Blob([JSON.stringify(payload, null, 1)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cert-학습기록-" + dayKey(new Date()) + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importRecords(file, onDone) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const payload = JSON.parse(reader.result);
+      if (!payload || payload.app !== "cert-bank" || !payload.data) throw new Error("형식이 다른 파일");
+      if (!confirm("가져오면 이 브라우저의 기존 학습 기록을 덮어씁니다. 계속할까요?\n(백업 시점: " + (payload.exportedAt || "?") + ")")) return;
+      BACKUP_KEYS.forEach((k) => {
+        if (payload.data[k] !== undefined) store.set(k, payload.data[k]);
+        else store.remove(k);
+      });
+      onDone && onDone(true);
+    } catch (e) {
+      alert("가져오기에 실패했어요: " + e.message);
+      onDone && onDone(false);
+    }
+  };
+  reader.readAsText(file);
+}
+
 /* 오늘 복습할 문제 (SRS due 도래) — certId 지정 시 해당 자격증만 */
 function getDueIds(certId) {
   const stats = getStats();
@@ -130,6 +200,12 @@ function recordResult(qid, correct, meta) {
   s.due = Date.now() + SRS_INTERVALS[s.iv] * 86400000;
   stats[qid] = s;
   setStats(stats);
+
+  // 일자별 학습 로그 (스트릭·활동 그래프용)
+  const days = store.get("days", {});
+  const dk = dayKey(new Date());
+  days[dk] = (days[dk] || 0) + 1;
+  store.set("days", days);
 
   const wrong = getWrongNote();
   if (!correct) {

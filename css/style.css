@@ -174,6 +174,12 @@ a.card { text-decoration: none; color: inherit; display: block; }
   letter-spacing: -0.03em; line-height: 1.25; margin-top: 4px;
 }
 .card.hero .hero-foot { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+.card.hero .streak-badge {
+  position: absolute; top: 22px; right: 24px; z-index: 1;
+  background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(4px);
+  color: #fff; font-weight: 800; font-size: 0.86rem;
+  padding: 8px 16px; border-radius: 999px;
+}
 .card.hero::after {
   content: ""; position: absolute; right: -70px; top: -70px;
   width: 260px; height: 260px; border-radius: 50%;
