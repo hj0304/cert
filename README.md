@@ -5,6 +5,9 @@ ADsP · 정보처리기사(예정) 기출 문제은행. **광고 없이, 깔끔�
 ## 특징
 
 - **Bento grid 대시보드** — 학습 통계, D-day, 오답노트, 북마크를 한눈에
+- **🔍 문제 검색** — 1,735문제를 키워드로 검색 (다중 단어 AND, `"정확한 문구"`), 자격증·유형 필터, 검색 결과만 몰아서 풀기
+- **📴 오프라인 학습** — 전 회차를 한 번 저장하면 데이터 없이도 풀이·검색 가능 (PWA 서비스 워커)
+- **코드 문법 하이라이팅** — 실기 C/Java/Python/SQL 코드 187블록에 색상·줄번호 (외부 라이브러리 없음)
 - **🎨 디자인 스킨 10종** — 기본 Bento 외에 Glassmorphism, Claymorphism, Skeuomorphic, Grainy, Brutalist, Cyberpunk, Y2K, Retro-Futurism, Duotone 중 취향대로 선택 (상단 🎨 버튼)
 - **연습 모드** — 문제별 "정답·해설 확인" 버튼으로 확인 (선택 없이 누르면 열람만 — 기록 미반영)
 - **실전 모드** — 전체 풀고 제출하면 채점, 과목별 점수 · 과락(40%) · 합격(60점) 판정
@@ -45,14 +48,24 @@ ADsP · 정보처리기사(예정) 기출 문제은행. **광고 없이, 깔끔�
 ## 구조
 
 ```
-index.html        # 홈 (bento grid 대시보드)
-exam.html         # 회차 선택 + CBT 풀이 화면
-css/style.css     # 디자인 시스템 (bento grid, 다크모드)
-js/common.js      # 자격증 레지스트리, 저장소, 테마
-js/home.js        # 대시보드 로직
-js/exam.js        # 풀이/채점/모드 로직
-data/adsp/        # 회차별 문제 데이터 (JS 래핑 — file:// 에서도 동작)
+index.html          # 홈 (bento grid 대시보드)
+exam.html           # 회차 선택 + CBT 풀이 화면
+search.html         # 문제 검색
+sw.js               # 서비스 워커 (오프라인 캐싱 + 복습 알림)
+css/style.css       # 디자인 시스템 (bento grid, 다크모드, 코드 하이라이팅)
+css/skins.css       # 디자인 스킨 9종
+js/common.js        # 자격증 레지스트리, 저장소, SRS, 테마·스킨, 오프라인
+js/home.js          # 대시보드 로직
+js/exam.js          # 풀이/채점/모드 로직
+js/search.js        # 검색 로직
+js/codehl.js        # 코드 문법 하이라이터
+data/{cert}/        # 회차별 문제 데이터 (JS 래핑 — file:// 에서도 동작)
+data/index.js       # 검색 인덱스 (tools/build-index.js로 생성)
+tools/bump.js       # 배포 전 캐시 버스팅 버전 스탬프
+tools/build-index.js # 검색 인덱스 재생성
 ```
+
+배포 전에는 `node tools/build-index.js && node tools/bump.js`를 실행해 인덱스와 캐시 버전을 갱신합니다.
 
 ## 출처
 

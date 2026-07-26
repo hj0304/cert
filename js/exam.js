@@ -16,7 +16,7 @@
   }
 
   /* ============ 회차 선택 화면 ============ */
-  if (!round && !["random", "wrong", "bookmark", "review", "weak"].includes(mode)) {
+  if (!round && !["random", "wrong", "bookmark", "review", "weak", "search"].includes(mode)) {
     loadingView.style.display = "none";
     setupView.style.display = "block";
     $("setupTitle").textContent = cert.name + " 기출문제";
@@ -87,6 +87,24 @@
         questions = pickWeak(all, 20);
         title = cert.name + " 약점 저격 20문제";
       }
+    } else if (mode === "search") {
+      // 검색 페이지에서 넘긴 [{i:문제id, r:회차}] 목록
+      let list = [];
+      try { list = JSON.parse(sessionStorage.getItem("cert.searchIds") || "[]"); } catch (e) {}
+      const byRound = {};
+      list.forEach((x) => { (byRound[x.r] = byRound[x.r] || []).push(String(x.i)); });
+      for (const r of Object.keys(byRound)) {
+        const data = await loadExamData(certId, r);
+        data.questions.forEach((q) => {
+          if (byRound[r].includes(String(q.id))) questions.push({ ...q, round: r });
+        });
+      }
+      // 검색 결과 순서 유지
+      const order = {};
+      list.forEach((x, i) => (order[String(x.i)] = i));
+      questions.sort((a, b) => (order[String(a.id)] ?? 0) - (order[String(b.id)] ?? 0));
+      const kw = sessionStorage.getItem("cert.searchQuery") || "";
+      title = cert.name + " 검색" + (kw ? ` — "${kw}"` : "");
     } else if (mode === "review") {
       const due = getDueIds(certId);
       const qIndex = getQIndex();
@@ -165,7 +183,7 @@
   function renderQuestion() {
     const Q = q();
     if (!Q) return;
-    $("qNumber").textContent = (["random", "wrong", "bookmark", "review", "weak"].includes(mode) ? roundLabel(Q.round, certId) + " · " : "") + Q.number + "번";
+    $("qNumber").textContent = (["random", "wrong", "bookmark", "review", "weak", "search"].includes(mode) ? roundLabel(Q.round, certId) + " · " : "") + Q.number + "번";
     $("qRate").style.display = "none";
     $("qCategory").textContent = Q.category || "기타";
     $("qTypeBadge").style.display = Q.type === "short" ? "" : "none";
@@ -214,6 +232,13 @@
         fb.className = "q-feedback " + (graded[Q.id] ? "ok" : "no");
         fb.textContent = graded[Q.id] ? "맞았어요! 잘하고 있어요 ✓" : "틀렸어요 — 정답: " + Q.shortAnswer;
       }
+    }
+
+    // 코드 블록 하이라이팅 (지문·보기)
+    if (window.highlightCodeIn) {
+      highlightCodeIn($("qSubject"));
+      highlightCodeIn($("qExtra"));
+      highlightCodeIn($("choiceList"));
     }
 
     renderExplain();
@@ -340,6 +365,7 @@
     (ex.user || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">📝 등록자 해설</div>${c}</div>`; });
     (ex.ai || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">🤖 AI 해설 <span class="explain-warn">— 부정확할 수 있어요</span></div>${c}</div>`; });
     body.innerHTML = html;
+    if (window.highlightCodeIn) highlightCodeIn(body);
   }
 
   function showShortAnswer(focusGrade = true) {
@@ -549,6 +575,7 @@
           ${mode === "wrong" ? "오답노트가 비어 있어요! 완벽하네요 👏"
             : mode === "bookmark" ? "북마크한 문제가 아직 없어요"
             : mode === "review" ? "오늘 복습할 문제가 없어요! 내일 다시 와요 🌱<br/><span style='font-size:.85rem'>문제를 풀면 맞힌 건 1→3→7→21일 간격으로, 틀린 건 다음날 복습 목록에 떠요.</span>"
+            : mode === "search" ? "검색 결과가 비어 있어요. <a href='search.html'>다시 검색</a>해 보세요."
             : "문제를 찾지 못했어요"}
           <br/><br/><a class="btn primary" href="index.html">홈으로</a></p>`;
         return;
@@ -559,7 +586,7 @@
       $("goWrongNote").href = "exam.html?cert=" + certId + "&mode=wrong";
       if (mode === "wrong" || mode === "bookmark") $("aiExportBtn").style.display = "";
       $("examTitle").textContent = title;
-      $("examModeBadge").textContent = isExamMode ? "실전 모드" : mode === "wrong" ? "오답 복습" : mode === "bookmark" ? "북마크" : mode === "random" ? "랜덤" : mode === "review" ? "간격 복습" : mode === "weak" ? "약점 저격" : "연습 모드";
+      $("examModeBadge").textContent = isExamMode ? "실전 모드" : mode === "wrong" ? "오답 복습" : mode === "bookmark" ? "북마크" : mode === "random" ? "랜덤" : mode === "review" ? "간격 복습" : mode === "weak" ? "약점 저격" : mode === "search" ? "검색 결과" : "연습 모드";
       // 해시로 특정 번호 이동 (#q17)
       const hm = location.hash.match(/^#q(\d+)$/);
       if (hm) {

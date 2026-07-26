@@ -63,6 +63,40 @@
   /* 알림이 켜져 있으면 방문 시 복습 체크 (하루 1회) */
   notifyOnVisit();
 
+  /* ---- 오프라인 저장 ---- */
+  const offlineBtn = document.getElementById("offlineBtn");
+  function renderOffline(cached, total) {
+    document.getElementById("offlineNum").textContent = cached;
+    document.getElementById("offlineUnit").textContent = "/ " + total + " 파일";
+    document.getElementById("offlineProgress").style.width = total ? (cached / total) * 100 + "%" : "0%";
+    const hint = document.getElementById("offlineHint");
+    if (cached >= total && total > 0) {
+      hint.textContent = "✅ 전 회차가 저장돼 있어요 — 오프라인에서도 전부 풀 수 있습니다";
+      offlineBtn.textContent = "🔄 다시 저장 (업데이트 확인)";
+    } else if (cached > 0) {
+      hint.textContent = "일부만 저장돼 있어요. 전체를 저장하면 어디서든 학습할 수 있어요.";
+      offlineBtn.textContent = "⬇️ 남은 회차 저장";
+    } else {
+      hint.textContent = "약 12MB를 내려받아요 (Wi-Fi 권장)";
+    }
+  }
+  offlineStatus(renderOffline);
+
+  offlineBtn.addEventListener("click", () => {
+    offlineBtn.disabled = true;
+    document.getElementById("offlineHint").textContent = "저장 중…";
+    cacheAllData(
+      (done, total) => renderOffline(done, total),
+      (failed) => {
+        offlineBtn.disabled = false;
+        offlineStatus(renderOffline);
+        if (failed === -1) toast("이 브라우저는 오프라인 저장을 지원하지 않아요");
+        else if (failed > 0) toast(`${failed}개 파일을 못 받았어요 — 다시 시도해 주세요`);
+        else toast("오프라인 저장 완료! 이제 데이터 없이도 공부할 수 있어요 📴");
+      }
+    );
+  });
+
   /* ---- 기록 내보내기/가져오기 ---- */
   document.getElementById("exportBtn").addEventListener("click", () => {
     exportRecords();

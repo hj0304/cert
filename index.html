@@ -9,14 +9,15 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#5b5bd6" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-  <link rel="stylesheet" href="css/style.css?v=202607260150" />
-  <link rel="stylesheet" href="css/skins.css?v=202607260150" />
+  <link rel="stylesheet" href="css/style.css?v=202607260213" />
+  <link rel="stylesheet" href="css/skins.css?v=202607260213" />
 </head>
 <body>
   <div class="wrap">
     <header class="topbar">
       <a class="brand" href="index.html"><span class="logo">🎓</span>CERT<span style="color:var(--ink-3);font-weight:600;font-size:.9rem">문제은행</span></a>
       <div class="actions">
+        <a class="icon-btn" href="search.html" title="문제 검색" style="text-decoration:none">🔍</a>
         <button class="icon-btn" id="exportBtn" title="학습 기록 내보내기 (JSON)">⬇️</button>
         <button class="icon-btn" id="importBtn" title="학습 기록 가져오기">⬆️</button>
         <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
@@ -141,6 +142,16 @@
         </div>
       </div>
 
+      <!-- 오프라인 -->
+      <div class="card span-4">
+        <div class="kicker">📴 오프라인 저장</div>
+        <div class="big-num"><span id="offlineNum">–</span><span class="unit" id="offlineUnit">회차</span></div>
+        <div class="desc">한 번 저장하면 지하철·비행기에서도 데이터 없이 풀 수 있어요</div>
+        <div class="progress-track"><div class="progress-fill" id="offlineProgress" style="width:0%"></div></div>
+        <button class="btn sm ghost" id="offlineBtn" style="margin-top:14px">⬇️ 전체 회차 저장</button>
+        <div class="desc" id="offlineHint" style="font-size:.76rem;margin-top:8px"></div>
+      </div>
+
       <!-- 과목별 -->
       <div class="card span-4">
         <div class="kicker">과목별 정답률</div>
@@ -156,7 +167,7 @@
     </footer>
   </div>
 
-  <script src="js/common.js?v=202607260150"></script>
-  <script src="js/home.js?v=202607260150"></script>
+  <script src="js/common.js?v=202607260213"></script>
+  <script src="js/home.js?v=202607260213"></script>
 </body>
 </html>

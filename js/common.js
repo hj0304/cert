@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202607260150";
+const BUILD = "202607260213";
 
 const CERTS = {
   adsp: {
@@ -186,6 +186,69 @@ async function notifyOnVisit() {
     store.set("notifyLast", today); // SW쪽 lastNotified와 별개로 페이지 쪽에서도 하루 1회 제한
   }
 }
+
+/* ---------- 오프라인 저장 ---------- */
+/* 전 자격증·전 회차 데이터 URL 목록 (SW 캐시 키와 일치해야 하므로 ?v=BUILD 포함) */
+function allDataUrls() {
+  const urls = ["data/index.js?v=" + BUILD];
+  Object.values(CERTS).forEach((c) => {
+    if (!c.ready) return;
+    c.rounds.forEach((r) => urls.push(`data/${c.id}/exam${r}.js?v=${BUILD}`));
+  });
+  return urls;
+}
+
+/* 오프라인용 전체 다운로드. onProgress(done, total), 완료 시 onDone(failed) */
+async function cacheAllData(onProgress, onDone) {
+  if (!("serviceWorker" in navigator)) { onDone && onDone(-1); return; }
+  await registerSW();
+  const reg = await navigator.serviceWorker.ready;
+  const handler = (e) => {
+    const m = e.data || {};
+    if (m.type === "cache-progress") onProgress && onProgress(m.done, m.total);
+    else if (m.type === "cache-done") {
+      navigator.serviceWorker.removeEventListener("message", handler);
+      onDone && onDone(m.failed);
+    }
+  };
+  navigator.serviceWorker.addEventListener("message", handler);
+  (reg.active || navigator.serviceWorker.controller).postMessage({ type: "cache-all", urls: allDataUrls() });
+}
+
+/* 저장 상태 조회 → onStatus(cached, total) */
+async function offlineStatus(onStatus) {
+  if (!("serviceWorker" in navigator)) { onStatus(0, 0); return; }
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg || !(reg.active || navigator.serviceWorker.controller)) { onStatus(0, allDataUrls().length); return; }
+  const handler = (e) => {
+    if ((e.data || {}).type === "cache-status") {
+      navigator.serviceWorker.removeEventListener("message", handler);
+      onStatus(e.data.cached, e.data.total);
+    }
+  };
+  navigator.serviceWorker.addEventListener("message", handler);
+  (reg.active || navigator.serviceWorker.controller).postMessage({ type: "cache-status", urls: allDataUrls() });
+}
+
+/* 오프라인 배너 */
+function initOfflineBanner() {
+  let el = null;
+  function render() {
+    if (navigator.onLine) { if (el) { el.remove(); el = null; } return; }
+    if (el) return;
+    el = document.createElement("div");
+    el.className = "offline-banner";
+    el.textContent = "📴 오프라인 — 저장된 회차는 그대로 풀 수 있어요";
+    document.body.appendChild(el);
+  }
+  window.addEventListener("online", render);
+  window.addEventListener("offline", render);
+  render();
+}
+document.addEventListener("DOMContentLoaded", initOfflineBanner);
+
+/* 모든 페이지에서 서비스 워커를 등록해 오프라인 셸을 확보 */
+document.addEventListener("DOMContentLoaded", () => { registerSW(); });
 
 /* ---------- 학습 기록 백업 ---------- */
 const BACKUP_KEYS = ["stats", "wrong", "bookmarks", "qindex", "days", "dday", "lastSession"];

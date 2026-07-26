@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>문제 검색 — CERT 문제은행</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#5b5bd6" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="css/style.css?v=202607260213" />
+  <link rel="stylesheet" href="css/skins.css?v=202607260213" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="index.html"><span class="logo">🎓</span>CERT<span style="color:var(--ink-3);font-weight:600;font-size:.9rem">문제은행</span></a>
+      <div class="actions">
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="다크모드 전환">🌙</button>
+      </div>
+    </header>
+
+    <div class="exam-head">
+      <div class="title">
+        <a class="btn ghost sm" href="index.html">← 홈</a>
+        <h1>🔍 문제 검색</h1>
+        <span class="pill accent" id="totalCount">1,735문제</span>
+      </div>
+    </div>
+
+    <div class="search-box">
+      <input type="search" id="q" placeholder="키워드를 입력하세요 — 예: 정규화, 블랙박스, 파이프 필터" autocomplete="off" autofocus />
+      <div class="search-filters">
+        <div class="seg" id="certFilter">
+          <button data-cert="" class="on">전체</button>
+          <button data-cert="adsp">ADsP</button>
+          <button data-cert="engineer">필기</button>
+          <button data-cert="practical">실기</button>
+        </div>
+        <div class="seg" id="typeFilter">
+          <button data-type="" class="on">유형 전체</button>
+          <button data-type="c">객관식</button>
+          <button data-type="s">단답형</button>
+        </div>
+      </div>
+      <div class="search-tips" id="tips">
+        여러 단어를 넣으면 모두 포함된 문제만 찾아요. 큰따옴표로 감싸면 <b>"정확히 그 문구"</b>를 찾습니다.
+      </div>
+    </div>
+
+    <div id="resultMeta" class="result-meta"></div>
+    <div id="quickPlay" class="quick-play"></div>
+    <div id="results" class="search-results"></div>
+    <div id="loading" style="color:var(--ink-3);padding:40px 0;text-align:center">인덱스를 불러오는 중…</div>
+  </div>
+
+  <script src="js/common.js?v=202607260213"></script>
+  <script src="js/search.js?v=202607260213"></script>
+</body>
+</html>

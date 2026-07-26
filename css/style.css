@@ -93,6 +93,7 @@ body {
   transition: all 0.15s ease;
 }
 .icon-btn:hover { color: var(--ink); box-shadow: var(--shadow); transform: translateY(-1px); }
+a.icon-btn { text-decoration: none; }
 
 /* ---------- bento grid ---------- */
 .bento {
@@ -407,6 +408,114 @@ a.card { text-decoration: none; color: inherit; display: block; }
 .result-table th { color: var(--ink-3); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 .result-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
 .modal .modal-actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+.search-box {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 22px 24px; box-shadow: var(--shadow);
+}
+.search-box input[type="search"] {
+  width: 100%; border: none; background: transparent; color: var(--ink);
+  font-family: inherit; font-size: 1.15rem; font-weight: 600; padding: 6px 0;
+  border-bottom: 2px solid var(--line);
+}
+.search-box input[type="search"]:focus { outline: none; border-bottom-color: var(--accent); }
+.search-box input[type="search"]::placeholder { color: var(--ink-3); font-weight: 500; }
+.search-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.search-tips { font-size: 0.8rem; color: var(--ink-3); margin-top: 12px; }
+
+.result-meta { color: var(--ink-2); font-size: 0.9rem; margin: 22px 0 12px; }
+.quick-play { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+
+.search-results { display: flex; flex-direction: column; gap: 10px; }
+.search-hit {
+  display: block; text-decoration: none; color: inherit;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 16px 18px;
+  transition: transform 0.13s ease, box-shadow 0.13s ease;
+}
+.search-hit:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--accent); }
+.hit-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.hit-round { font-size: 0.82rem; font-weight: 700; color: var(--ink); }
+.hit-cat { font-size: 0.78rem; color: var(--ink-3); }
+.hit-text { font-size: 0.9rem; color: var(--ink-2); line-height: 1.65; }
+.hit-text mark, .search-hit mark {
+  background: var(--amber-soft); color: var(--amber);
+  font-weight: 700; padding: 0 2px; border-radius: 3px;
+}
+
+/* ============================================================
+   CODE HIGHLIGHTING
+   ============================================================ */
+:root {
+  --code-bg: #f7f6f3;
+  --code-ln: #b3ab9c;
+  --tk-kw: #a626a4;
+  --tk-type: #0184bc;
+  --tk-str: #50a14f;
+  --tk-num: #b76b01;
+  --tk-com: #a0a1a7;
+  --tk-fn: #4078f2;
+  --tk-pre: #c18401;
+}
+[data-theme="dark"] {
+  --code-bg: #16161c;
+  --code-ln: #4b4b57;
+  --tk-kw: #c678dd;
+  --tk-type: #56b6c2;
+  --tk-str: #98c379;
+  --tk-num: #d19a66;
+  --tk-com: #6b6b78;
+  --tk-fn: #61afef;
+  --tk-pre: #e5c07b;
+}
+
+pre.code-block {
+  position: relative;
+  background: var(--code-bg) !important;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px 14px 8px;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", Consolas, "D2Coding", "Courier New", monospace !important;
+  font-size: 0.86rem;
+  line-height: 1.7;
+  white-space: normal;
+}
+pre.code-block .code-lang {
+  position: absolute; top: 8px; right: 12px;
+  font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em;
+  color: var(--ink-3); text-transform: uppercase;
+}
+.code-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 14px;
+}
+.code-ln {
+  text-align: right; color: var(--code-ln);
+  font-size: 0.78rem; user-select: none;
+  padding-right: 4px; border-right: 1px solid var(--line);
+}
+.code-src { white-space: pre; color: var(--ink); }
+
+.tk-kw { color: var(--tk-kw); font-weight: 700; }
+.tk-type { color: var(--tk-type); font-weight: 600; }
+.tk-str { color: var(--tk-str); }
+.tk-num { color: var(--tk-num); }
+.tk-com { color: var(--tk-com); font-style: italic; }
+.tk-fn { color: var(--tk-fn); }
+.tk-pre { color: var(--tk-pre); font-weight: 700; }
+
+/* 오프라인 배너 */
+.offline-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 80;
+  background: var(--ink); color: var(--bg);
+  font-size: 0.84rem; font-weight: 700; text-align: center;
+  padding: 8px 16px;
+}
 
 /* toast */
 .toast {
