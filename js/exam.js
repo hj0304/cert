@@ -453,7 +453,8 @@
     el.style.display = "";
   }
 
-  /* 해설 표시 */
+  /* 해설 표시 — 정답이 공개되면 바로 펼친다.
+     접어두길 원하는 사람도 있으니 토글 선택은 기억해서 다음 문제에도 적용한다. */
   function renderExplain() {
     const Q = q();
     const box = $("explainBox"), body = $("explainBody");
@@ -462,12 +463,13 @@
     const hasContent = (ex.user && ex.user.length) || (ex.ai && ex.ai.length);
     if (!revealed || !hasContent) { box.style.display = "none"; body.style.display = "none"; return; }
     box.style.display = "";
-    body.style.display = "none";
-    $("explainToggle").textContent = "💡 해설 보기";
     let html = "";
     (ex.user || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">📝 등록자 해설</div>${c}</div>`; });
     (ex.ai || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">🤖 AI 해설 <span class="explain-warn">— 부정확할 수 있어요</span></div>${c}</div>`; });
     body.innerHTML = html;
+    const open = store.get("explainOpen", true);
+    body.style.display = open ? "" : "none";
+    $("explainToggle").textContent = open ? "💡 해설 접기" : "💡 해설 보기";
     if (window.highlightCodeIn) highlightCodeIn(body);
   }
 
@@ -627,6 +629,7 @@
     const show = body.style.display === "none";
     body.style.display = show ? "" : "none";
     $("explainToggle").textContent = show ? "💡 해설 접기" : "💡 해설 보기";
+    store.set("explainOpen", show); // 선택을 기억해 다음 문제에도 적용
   });
   $("submitBtn").addEventListener("click", submit);
   $("bmBtn").addEventListener("click", () => {
