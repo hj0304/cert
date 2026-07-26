@@ -193,12 +193,17 @@
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diff = Math.round((target - today) / 86400000);
-    numEl.textContent = diff > 0 ? "D-" + diff : diff === 0 ? "D-DAY" : "D+" + -diff;
+    const todayKey = dayKey(today);
+    const inPeriod = d.end && todayKey >= d.date && todayKey <= d.end;
+
+    numEl.textContent = inPeriod ? "응시 기간" : diff > 0 ? "D-" + diff : diff === 0 ? "D-DAY" : "D+" + -diff;
+    if (inPeriod) numEl.style.fontSize = "1.6rem";
     const certName = d.cert && CERTS[d.cert] ? CERTS[d.cert].name : d.label || "시험";
-    descEl.textContent = certName + " · " + d.date;
+    descEl.textContent = certName + " · " + d.date + (d.end ? " ~ " + d.end : "");
 
     const hero = document.getElementById("heroMsg");
-    if (diff > 0) hero.innerHTML = `${esc(certName)}까지 <b>${diff}일</b>,<br />오늘도 한 걸음 더`;
+    if (inPeriod) hero.innerHTML = `${esc(certName)} <b>응시 기간</b>이에요!<br />${d.end}까지 볼 수 있어요`;
+    else if (diff > 0) hero.innerHTML = `${esc(certName)}까지 <b>${diff}일</b>,<br />오늘도 한 걸음 더`;
     else if (diff === 0) hero.innerHTML = "오늘이 바로 그날!<br />차분하게, 아는 것부터";
 
     /* 학습 계획 */
@@ -218,7 +223,7 @@
     dailyEl.textContent = plan.dailyTarget + "문제";
     const pct = Math.min(100, (plan.todayCount / plan.dailyTarget) * 100);
     progEl.style.width = pct + "%";
-    const parts = [`남은 ${plan.remaining}문제 ÷ ${plan.daysLeft || 1}일`];
+    const parts = [`남은 ${plan.remaining}문제 ÷ ${plan.planDays}일` + (plan.inPeriod ? " (기간 마감까지)" : "")];
     if (plan.todayDone) parts.push(`오늘 ${plan.todayCount}문제 — 목표 달성 ✓`);
     else parts.push(`오늘 ${plan.todayCount}/${plan.dailyTarget}문제`);
     statusEl.textContent = parts.join(" · ");
@@ -228,13 +233,43 @@
   /* D-day 설정 모달 */
   const ddayModal = document.getElementById("ddayModal");
   let ddayCertSel = "adsp";
+  let ddayEndSel = null; // 기간제 시험의 종료일
+
+  function renderPresets() {
+    const list = document.getElementById("ddayPresets");
+    const note = document.getElementById("ddayNote");
+    const items = upcomingExams(ddayCertSel);
+    const chosen = document.getElementById("ddayDate").value;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (!items.length) {
+      list.innerHTML = `<p style="font-size:.82rem;color:var(--ink-3)">2026년 남은 일정이 없어요. 아래에서 직접 입력해 주세요.</p>`;
+    } else {
+      list.innerHTML = items
+        .map((e) => {
+          const diff = Math.round((new Date(e.date + "T00:00:00") - today) / 86400000);
+          const dd = diff > 0 ? "D-" + diff : diff === 0 ? "D-DAY" : "응시 기간 중";
+          return `<button class="preset-btn ${e.date === chosen ? "on" : ""}" data-date="${e.date}" data-end="${e.end || ""}">
+            ${e.round}<span class="preset-when">${shortRange(e)} · <span class="preset-dd">${dd}</span></span>
+          </button>`;
+        })
+        .join("");
+    }
+    note.textContent = ddayCertSel === "adsp"
+      ? "ADsP는 지정된 날짜에 시행돼요."
+      : "2026년부터 기간 내에 응시일을 고르는 방식이라, D-day는 기간 시작일 기준이에요.";
+  }
+
   function openDdayModal() {
     const cur = store.get("dday", null) || {};
     document.getElementById("ddayDate").value = cur.date || "";
+    ddayEndSel = cur.end || null;
     ddayCertSel = cur.cert && CERTS[cur.cert] ? cur.cert : "adsp";
     document.getElementById("ddayCert").querySelectorAll("button").forEach((b) => {
       b.classList.toggle("on", b.dataset.cert === ddayCertSel);
     });
+    renderPresets();
     ddayModal.classList.add("show");
   }
   document.getElementById("ddayCard").addEventListener("click", openDdayModal);
@@ -243,11 +278,25 @@
     if (!b) return;
     ddayCertSel = b.dataset.cert;
     document.getElementById("ddayCert").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    renderPresets();
+  });
+  document.getElementById("ddayPresets").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-date]");
+    if (!b) return;
+    document.getElementById("ddayDate").value = b.dataset.date;
+    ddayEndSel = b.dataset.end || null;
+    renderPresets();
+  });
+  document.getElementById("ddayDate").addEventListener("change", () => {
+    ddayEndSel = null; // 직접 입력하면 기간 정보는 버린다
+    renderPresets();
   });
   document.getElementById("ddaySave").addEventListener("click", () => {
     const date = document.getElementById("ddayDate").value;
     if (!date) return toast("시험 날짜를 선택해 주세요");
-    store.set("dday", { date, cert: ddayCertSel, label: CERTS[ddayCertSel].name });
+    const rec = { date, cert: ddayCertSel, label: CERTS[ddayCertSel].name };
+    if (ddayEndSel) rec.end = ddayEndSel;
+    store.set("dday", rec);
     ddayModal.classList.remove("show");
     renderDday();
     toast("시험일과 학습 계획을 설정했어요 🎯");

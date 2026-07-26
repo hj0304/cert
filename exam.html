@@ -8,8 +8,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#5b5bd6" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-  <link rel="stylesheet" href="css/style.css?v=202607260655" />
-  <link rel="stylesheet" href="css/skins.css?v=202607260655" />
+  <link rel="stylesheet" href="css/style.css?v=202607260744" />
+  <link rel="stylesheet" href="css/skins.css?v=202607260744" />
 </head>
 <body>
   <div class="wrap">
@@ -36,6 +36,13 @@
       <p style="color:var(--ink-2);font-size:.92rem;margin-bottom:6px" id="setupDesc">
         <b>연습 모드</b>는 문제별로 <b>정답·해설 확인</b> 버튼을 눌러 확인하고, <b>실전 모드</b>는 전부 푼 뒤 제출하면 채점돼요.
       </p>
+      <section id="subjectSection" style="display:none;margin:26px 0 8px">
+        <h2 style="font-size:1.05rem;font-weight:800;letter-spacing:-.01em">📚 과목별로 몰아 풀기</h2>
+        <p style="color:var(--ink-2);font-size:.86rem;margin-top:4px">전 회차에서 한 과목만 모아서 풀어요. 약한 과목을 집중 공략할 때 좋아요.</p>
+        <div class="subject-grid" id="subjectGrid"></div>
+      </section>
+
+      <h2 id="roundHeading" style="font-size:1.05rem;font-weight:800;letter-spacing:-.01em;margin:26px 0 10px">🗂 회차별로 풀기</h2>
       <div class="setup-grid" id="roundGrid"></div>
     </section>
 
@@ -148,8 +155,8 @@
     </div>
   </div>
 
-  <script src="js/common.js?v=202607260655"></script>
-  <script src="js/codehl.js?v=202607260655"></script>
-  <script src="js/exam.js?v=202607260655"></script>
+  <script src="js/common.js?v=202607260744"></script>
+  <script src="js/codehl.js?v=202607260744"></script>
+  <script src="js/exam.js?v=202607260744"></script>
 </body>
 </html>

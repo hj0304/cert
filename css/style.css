@@ -519,6 +519,21 @@ pre.code-block .code-lang {
 }
 .plan-target b { font-size: 1.15rem; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
 
+/* 시험일정 프리셋 */
+.preset-list { display: flex; flex-direction: column; gap: 6px; }
+.preset-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink);
+  font-family: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+  text-align: left; transition: all 0.13s ease;
+}
+.preset-btn:hover { border-color: var(--accent); }
+.preset-btn.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); }
+.preset-btn .preset-when { margin-left: auto; font-weight: 600; color: var(--ink-3); font-size: 0.8rem; }
+.preset-btn.on .preset-when { color: var(--accent-ink); }
+.preset-btn .preset-dd { font-variant-numeric: tabular-nums; }
+
 /* 모달 폼 요소 */
 .field-label {
   display: block; font-size: 0.78rem; font-weight: 700; color: var(--ink-3);
@@ -555,6 +570,23 @@ pre.code-block .code-lang {
 .round-card { padding: 22px; }
 .round-card .meta { color: var(--ink-3); font-size: 0.82rem; margin-top: 4px; }
 .round-card .go-row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+/* 과목별 풀기 */
+.subject-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px; margin-top: 14px;
+}
+.subject-card {
+  display: block; text-decoration: none; color: inherit;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 16px 18px; box-shadow: var(--shadow);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+.subject-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); border-color: var(--accent); }
+.subject-card .sc-name { font-weight: 800; font-size: 0.95rem; letter-spacing: -0.01em; }
+.subject-card .sc-meta { font-size: 0.8rem; color: var(--ink-3); margin-top: 5px; }
+.subject-card .sc-bar { height: 5px; border-radius: 99px; background: var(--surface-2); margin-top: 10px; overflow: hidden; border: 1px solid var(--line); }
+.subject-card .sc-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), #9a5bd6); }
 
 .seg {
   display: inline-flex; background: var(--surface-2); border: 1px solid var(--line);

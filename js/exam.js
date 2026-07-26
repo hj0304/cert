@@ -6,6 +6,7 @@
   const cert = CERTS[certId];
   const mode = params.get("mode") || (params.get("round") ? "practice" : null);
   const round = params.get("round") || null; // ADsP: "42", 정처기: "2022-1"
+  const subjectParam = params.get("subject"); // 과목별 풀기
 
   const $ = (id) => document.getElementById(id);
   const setupView = $("setupView"), examView = $("examView"), loadingView = $("loadingView");
@@ -16,7 +17,7 @@
   }
 
   /* ============ 회차 선택 화면 ============ */
-  if (!round && !["random", "wrong", "bookmark", "review", "weak", "search"].includes(mode)) {
+  if (!round && !["random", "wrong", "bookmark", "review", "weak", "search", "subject"].includes(mode)) {
     loadingView.style.display = "none";
     setupView.style.display = "block";
     $("setupTitle").textContent = cert.name + " 기출문제";
@@ -39,6 +40,7 @@
       selMode = b.dataset.mode;
       $("modeSeg").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
       renderSetupDesc();
+      renderSubjects();
       renderRounds();
     });
 
@@ -48,6 +50,34 @@
       const m = qIndex[id];
       if (m && m.cert === certId) solvedByRound[m.round] = (solvedByRound[m.round] || 0) + 1;
     });
+
+    /* 과목별 풀기 — 연습 모드에서만, 과목이 2개 이상인 자격증만 */
+    function renderSubjects() {
+      const sec = $("subjectSection");
+      const multi = (cert.subjects || []).length > 1;
+      if (!multi || selMode !== "practice") { sec.style.display = "none"; return; }
+      const counts = (window.CERT_META && window.CERT_META.subjectCounts[certId]) || {};
+      // 과목별 학습 진도 (해당 과목에서 풀어본 문제 수)
+      const solvedBySubject = {};
+      Object.keys(stats).forEach((id) => {
+        const m = qIndex[id];
+        if (m && m.cert === certId && m.cat) solvedBySubject[m.cat] = (solvedBySubject[m.cat] || 0) + 1;
+      });
+      sec.style.display = "";
+      $("subjectGrid").innerHTML = cert.subjects
+        .map((s) => {
+          const total = counts[s] || 0;
+          if (!total) return "";
+          const done = solvedBySubject[s] || 0;
+          const pct = Math.min(100, (done / total) * 100);
+          return `<a class="subject-card" href="exam.html?cert=${certId}&mode=subject&subject=${encodeURIComponent(s)}">
+            <div class="sc-name">${esc(s)}</div>
+            <div class="sc-meta">${total}문제 · ${done ? `${done}문제 학습` : "아직 안 풀었어요"}</div>
+            <div class="sc-bar"><div class="sc-fill" style="width:${pct}%"></div></div>
+          </a>`;
+        })
+        .join("");
+    }
 
     function renderRounds() {
       $("roundGrid").innerHTML = cert.rounds
@@ -69,7 +99,16 @@
         })
         .join("");
     }
+    renderSubjects();
     renderRounds();
+
+    // 과목별 문제 수는 작은 메타 파일에서 읽는다 (없어도 회차별 풀기는 정상 동작)
+    if (!window.CERT_META) {
+      const s = document.createElement("script");
+      s.src = "data/meta.js?v=" + BUILD;
+      s.onload = renderSubjects;
+      document.head.appendChild(s);
+    }
     return;
   }
 
@@ -97,6 +136,15 @@
         questions = pickWeak(all, 20);
         title = cert.name + " 약점 저격 20문제";
       }
+    } else if (mode === "subject") {
+      // 전 회차에서 해당 과목만 모아 순서대로 (최신 회차부터)
+      for (const r of cert.rounds) {
+        const data = await loadExamData(certId, r);
+        data.questions.forEach((q) => {
+          if (q.category === subjectParam) questions.push({ ...q, round: r });
+        });
+      }
+      title = cert.name + " · " + subjectParam;
     } else if (mode === "search") {
       // 검색 페이지에서 넘긴 [{i:문제id, r:회차}] 목록
       let list = [];
@@ -193,7 +241,7 @@
   function renderQuestion() {
     const Q = q();
     if (!Q) return;
-    $("qNumber").textContent = (["random", "wrong", "bookmark", "review", "weak", "search"].includes(mode) ? roundLabel(Q.round, certId) + " · " : "") + Q.number + "번";
+    $("qNumber").textContent = (["random", "wrong", "bookmark", "review", "weak", "search", "subject"].includes(mode) ? roundLabel(Q.round, certId) + " · " : "") + Q.number + "번";
     $("qRate").style.display = "none";
     $("qCategory").textContent = Q.category || "기타";
     $("qTypeBadge").style.display = Q.type === "short" ? "" : "none";
@@ -622,6 +670,7 @@
             : mode === "bookmark" ? "북마크한 문제가 아직 없어요"
             : mode === "review" ? "오늘 복습할 문제가 없어요! 내일 다시 와요 🌱<br/><span style='font-size:.85rem'>문제를 풀면 맞힌 건 1→3→7→21일 간격으로, 틀린 건 다음날 복습 목록에 떠요.</span>"
             : mode === "search" ? "검색 결과가 비어 있어요. <a href='search.html'>다시 검색</a>해 보세요."
+            : mode === "subject" ? "해당 과목의 문제를 찾지 못했어요."
             : "문제를 찾지 못했어요"}
           <br/><br/><a class="btn primary" href="index.html">홈으로</a></p>`;
         return;
@@ -632,7 +681,7 @@
       $("goWrongNote").href = "exam.html?cert=" + certId + "&mode=wrong";
       if (mode === "wrong" || mode === "bookmark") $("aiExportBtn").style.display = "";
       $("examTitle").textContent = title;
-      $("examModeBadge").textContent = isExamMode ? "실전 모드" : mode === "wrong" ? "오답 복습" : mode === "bookmark" ? "북마크" : mode === "random" ? "랜덤" : mode === "review" ? "간격 복습" : mode === "weak" ? "약점 저격" : mode === "search" ? "검색 결과" : "연습 모드";
+      $("examModeBadge").textContent = isExamMode ? "실전 모드" : mode === "wrong" ? "오답 복습" : mode === "bookmark" ? "북마크" : mode === "random" ? "랜덤" : mode === "review" ? "간격 복습" : mode === "weak" ? "약점 저격" : mode === "search" ? "검색 결과" : mode === "subject" ? "과목 집중" : "연습 모드";
       // 해시로 특정 번호 이동 (#q17)
       const hm = location.hash.match(/^#q(\d+)$/);
       if (hm) {

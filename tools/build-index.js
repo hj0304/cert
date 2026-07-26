@@ -53,3 +53,12 @@ const out = `window.CERT_INDEX=${JSON.stringify(index)};`;
 fs.writeFileSync(path.join(ROOT, "data", "index.js"), out, "utf8");
 console.log(`${index.length}문제 인덱싱 · ${(out.length / 1024).toFixed(0)}KB`);
 console.log("자격증별:", CERTS.map((c) => `${c} ${index.filter((x) => x.c === c).length}`).join(" / "));
+
+/* 과목별 문제 수 — 회차 선택 화면에서 과목 칩에 표시한다 (작은 파일이라 항상 로드) */
+const counts = {};
+for (const item of index) {
+  const byCert = (counts[item.c] = counts[item.c] || {});
+  byCert[item.s] = (byCert[item.s] || 0) + 1;
+}
+fs.writeFileSync(path.join(ROOT, "data", "meta.js"), `window.CERT_META={subjectCounts:${JSON.stringify(counts)}};`, "utf8");
+console.log("과목별 문제 수:", JSON.stringify(counts));

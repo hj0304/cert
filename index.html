@@ -9,8 +9,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#5b5bd6" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-  <link rel="stylesheet" href="css/style.css?v=202607260655" />
-  <link rel="stylesheet" href="css/skins.css?v=202607260655" />
+  <link rel="stylesheet" href="css/style.css?v=202607260744" />
+  <link rel="stylesheet" href="css/skins.css?v=202607260744" />
 </head>
 <body>
   <div class="wrap">
@@ -181,7 +181,9 @@
       <div class="kicker" style="font-size:.78rem;font-weight:700;letter-spacing:.08em;color:var(--ink-3)">D-DAY</div>
       <h2>시험일 설정</h2>
       <p style="color:var(--ink-2);font-size:.88rem;margin-top:6px">시험일과 준비 중인 자격증을 고르면 하루에 몇 문제를 풀어야 하는지 계산해드려요.</p>
-      <label class="field-label">시험 날짜</label>
+      <label class="field-label">2026년 시험일정에서 고르기</label>
+      <div class="preset-list" id="ddayPresets"></div>
+      <label class="field-label">직접 입력</label>
       <input type="date" id="ddayDate" class="field" />
       <label class="field-label">자격증</label>
       <div class="seg" id="ddayCert" style="width:100%">
@@ -189,6 +191,7 @@
         <button data-cert="engineer">필기</button>
         <button data-cert="practical">실기</button>
       </div>
+      <p style="font-size:.76rem;color:var(--ink-3);margin-top:10px" id="ddayNote"></p>
       <div class="modal-actions">
         <button class="btn primary" id="ddaySave">저장</button>
         <button class="btn ghost" id="ddayClear">해제</button>
@@ -197,7 +200,7 @@
     </div>
   </div>
 
-  <script src="js/common.js?v=202607260655"></script>
-  <script src="js/home.js?v=202607260655"></script>
+  <script src="js/common.js?v=202607260744"></script>
+  <script src="js/home.js?v=202607260744"></script>
 </body>
 </html>

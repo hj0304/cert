@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202607260655";
+const BUILD = "202607260744";
 
 const CERTS = {
   adsp: {
@@ -67,6 +67,42 @@ const CERTS = {
     ready: true,
   },
 };
+
+/* ---------- 2026년 시험일정 ----------
+   출처: 한국데이터산업진흥원(ADsP) / 2026년도 국가기술자격 검정 시행공고(정처기).
+   정처기는 2026년부터 필기가 CBT로 전환되어 기간 내 원하는 날에 응시하고,
+   실기도 기간제로 시행되므로 start~end 기간을 함께 보관한다.
+   D-day 계산은 기간의 시작일을 기준으로 한다. */
+const EXAM_SCHEDULE = {
+  adsp: [
+    { round: "제48회", date: "2026-02-07" },
+    { round: "제49회", date: "2026-05-17" },
+    { round: "제50회", date: "2026-08-08" },
+    { round: "제51회", date: "2026-10-31" },
+  ],
+  engineer: [
+    { round: "2026년 1회", date: "2026-01-30", end: "2026-03-03" },
+    { round: "2026년 2회", date: "2026-05-09", end: "2026-05-29" },
+    { round: "2026년 3회", date: "2026-08-07", end: "2026-09-01" },
+  ],
+  practical: [
+    { round: "2026년 1회", date: "2026-04-18", end: "2026-05-06" },
+    { round: "2026년 2회", date: "2026-07-18", end: "2026-08-05" },
+    { round: "2026년 3회", date: "2026-10-24", end: "2026-11-13" },
+  ],
+};
+
+/* 아직 끝나지 않은 일정만 (기간제는 종료일까지 유효) */
+function upcomingExams(certId) {
+  const today = dayKey(new Date());
+  return (EXAM_SCHEDULE[certId] || []).filter((e) => (e.end || e.date) >= today);
+}
+
+/* "8/8" 또는 "8/7~9/1" 형태의 짧은 표기 */
+function shortRange(e) {
+  const md = (s) => { const p = s.split("-"); return +p[1] + "/" + +p[2]; };
+  return e.end ? md(e.date) + "~" + md(e.end) : md(e.date);
+}
 
 /* 로컬 기준 일자 키: "2026-07-25" */
 function dayKey(d) {
@@ -193,7 +229,7 @@ async function notifyOnVisit() {
 /* ---------- 오프라인 저장 ---------- */
 /* 전 자격증·전 회차 데이터 URL 목록 (SW 캐시 키와 일치해야 하므로 ?v=BUILD 포함) */
 function allDataUrls() {
-  const urls = ["data/index.js?v=" + BUILD];
+  const urls = ["data/index.js?v=" + BUILD, "data/meta.js?v=" + BUILD];
   Object.values(CERTS).forEach((c) => {
     if (!c.ready) return;
     c.rounds.forEach((r) => urls.push(`data/${c.id}/exam${r}.js?v=${BUILD}`));
@@ -317,22 +353,31 @@ function studyPlan() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const daysLeft = Math.round((target - today) / 86400000);
-  if (daysLeft < 0) return null; // 이미 지난 시험
+  // 기간제 시험은 종료일까지 계획을 유지한다 (기간 중이면 남은 일수 0)
+  const endKey = d.end || d.date;
+  if (daysLeft < 0 && dayKey(today) > endKey) return null; // 완전히 지난 시험
 
   const stats = getStats();
   const qIndex = getQIndex();
   const ids = Object.keys(stats).filter((id) => qIndex[id] && qIndex[id].cert === certId);
   const studied = ids.length;
   const remaining = Math.max(0, cert.total - studied);
-  // 시험 당일도 하루로 세서 0으로 나누는 일이 없게 한다
-  const dailyTarget = remaining ? Math.ceil(remaining / Math.max(1, daysLeft)) : 0;
+
+  // 기간제 시험의 응시 기간 중이라면 종료일까지가 실제 남은 준비 기간이다.
+  // (기간 시작일 기준으로 계산하면 남은 일수가 0이 되어 하루 목표가 폭발한다)
+  const inPeriod = daysLeft <= 0 && dayKey(today) <= endKey;
+  const planDays = inPeriod
+    ? Math.max(1, Math.round((new Date(endKey + "T00:00:00") - today) / 86400000))
+    : Math.max(1, daysLeft);
+  const dailyTarget = remaining ? Math.ceil(remaining / planDays) : 0;
 
   const todayKey = dayKey(new Date());
   const todayCount = ids.filter((id) => stats[id].t && dayKey(new Date(stats[id].t)) === todayKey).length;
 
   return {
-    cert: certId, certName: cert.name, date: d.date, label: d.label || cert.name,
-    daysLeft, total: cert.total, studied, remaining, dailyTarget,
+    cert: certId, certName: cert.name, date: d.date, end: d.end || null,
+    label: d.label || cert.name, inPeriod, planDays,
+    daysLeft: Math.max(0, daysLeft), total: cert.total, studied, remaining, dailyTarget,
     todayCount, todayDone: dailyTarget === 0 || todayCount >= dailyTarget,
     paceDiff: todayCount - dailyTarget,
   };
