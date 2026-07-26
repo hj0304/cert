@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202607260213";
+const BUILD = "202607260655";
 
 const CERTS = {
   adsp: {
@@ -20,6 +20,7 @@ const CERTS = {
     },
     subjects: ["데이터 이해", "데이터 분석 기획", "데이터 분석"],
     total: 560,
+    timeLimit: 90, // 실제 시험: 객관식 50문항 90분
     ready: true,
   },
   engineer: {
@@ -40,6 +41,7 @@ const CERTS = {
     },
     subjects: ["소프트웨어 설계", "소프트웨어 개발", "데이터베이스 구축", "프로그래밍 언어 활용", "정보시스템 구축관리"],
     total: 799,
+    timeLimit: 150, // 실제 시험: 과목당 20문항·30분 × 5과목 = 150분
     ready: true,
   },
   practical: {
@@ -61,6 +63,7 @@ const CERTS = {
     },
     subjects: ["실기"],
     total: 376,
+    timeLimit: 150, // 실제 시험: 필답형 2시간 30분
     ready: true,
   },
 };
@@ -297,6 +300,42 @@ function getDueIds(certId) {
     .filter((id) => stats[id].due && stats[id].due <= now)
     .filter((id) => !certId || (qIndex[id] && qIndex[id].cert === certId))
     .sort((a, b) => (stats[a].due || 0) - (stats[b].due || 0));
+}
+
+/* 학습 계획: 시험일까지 남은 기간으로 하루 목표 문제 수를 역산한다.
+   반환 null = D-day 미설정 / 지난 시험.
+   { cert, certName, date, daysLeft, total, studied, remaining, dailyTarget,
+     todayCount, todayDone, onPace, paceDiff } */
+function studyPlan() {
+  const d = store.get("dday", null);
+  if (!d || !d.date) return null;
+  const certId = d.cert && CERTS[d.cert] && CERTS[d.cert].ready ? d.cert : null;
+  if (!certId) return null;
+
+  const cert = CERTS[certId];
+  const target = new Date(d.date + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysLeft = Math.round((target - today) / 86400000);
+  if (daysLeft < 0) return null; // 이미 지난 시험
+
+  const stats = getStats();
+  const qIndex = getQIndex();
+  const ids = Object.keys(stats).filter((id) => qIndex[id] && qIndex[id].cert === certId);
+  const studied = ids.length;
+  const remaining = Math.max(0, cert.total - studied);
+  // 시험 당일도 하루로 세서 0으로 나누는 일이 없게 한다
+  const dailyTarget = remaining ? Math.ceil(remaining / Math.max(1, daysLeft)) : 0;
+
+  const todayKey = dayKey(new Date());
+  const todayCount = ids.filter((id) => stats[id].t && dayKey(new Date(stats[id].t)) === todayKey).length;
+
+  return {
+    cert: certId, certName: cert.name, date: d.date, label: d.label || cert.name,
+    daysLeft, total: cert.total, studied, remaining, dailyTarget,
+    todayCount, todayDone: dailyTarget === 0 || todayCount >= dailyTarget,
+    paceDiff: todayCount - dailyTarget,
+  };
 }
 
 /* 과목별 성취도: {과목: {a, w, acc}} — 최근 기록일수록 가중 */

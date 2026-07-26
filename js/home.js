@@ -175,14 +175,18 @@
   });
   if (rowsHtml.length) subjRows.innerHTML = rowsHtml.join("");
 
-  /* ---- D-day ---- */
+  /* ---- D-day + 학습 계획 ---- */
   function renderDday() {
     const d = store.get("dday", null);
     const numEl = document.getElementById("ddayNum");
     const descEl = document.getElementById("ddayDesc");
-    if (!d) {
+    const planBox = document.getElementById("planBox");
+    document.getElementById("ddayEdit").textContent = d ? "· 눌러서 변경" : "";
+
+    if (!d || !d.date) {
       numEl.textContent = "설정";
       descEl.textContent = "카드를 눌러 시험일을 설정하세요";
+      planBox.style.display = "none";
       return;
     }
     const target = new Date(d.date + "T00:00:00");
@@ -190,22 +194,73 @@
     today.setHours(0, 0, 0, 0);
     const diff = Math.round((target - today) / 86400000);
     numEl.textContent = diff > 0 ? "D-" + diff : diff === 0 ? "D-DAY" : "D+" + -diff;
-    descEl.textContent = (d.label || "시험") + " · " + d.date;
+    const certName = d.cert && CERTS[d.cert] ? CERTS[d.cert].name : d.label || "시험";
+    descEl.textContent = certName + " · " + d.date;
 
     const hero = document.getElementById("heroMsg");
-    if (diff > 0) hero.innerHTML = `${esc(d.label || "시험")}까지 <b>${diff}일</b>,<br />오늘도 한 걸음 더`;
+    if (diff > 0) hero.innerHTML = `${esc(certName)}까지 <b>${diff}일</b>,<br />오늘도 한 걸음 더`;
     else if (diff === 0) hero.innerHTML = "오늘이 바로 그날!<br />차분하게, 아는 것부터";
+
+    /* 학습 계획 */
+    const plan = studyPlan();
+    if (!plan) { planBox.style.display = "none"; return; }
+    planBox.style.display = "";
+    const dailyEl = document.getElementById("planDaily");
+    const statusEl = document.getElementById("planStatus");
+    const progEl = document.getElementById("planProgress");
+
+    if (plan.remaining === 0) {
+      dailyEl.textContent = "완주 🎉";
+      progEl.style.width = "100%";
+      statusEl.textContent = `${plan.total}문제를 모두 봤어요. 이제 오답노트와 복습으로 마무리!`;
+      return;
+    }
+    dailyEl.textContent = plan.dailyTarget + "문제";
+    const pct = Math.min(100, (plan.todayCount / plan.dailyTarget) * 100);
+    progEl.style.width = pct + "%";
+    const parts = [`남은 ${plan.remaining}문제 ÷ ${plan.daysLeft || 1}일`];
+    if (plan.todayDone) parts.push(`오늘 ${plan.todayCount}문제 — 목표 달성 ✓`);
+    else parts.push(`오늘 ${plan.todayCount}/${plan.dailyTarget}문제`);
+    statusEl.textContent = parts.join(" · ");
+    statusEl.style.color = plan.todayDone ? "var(--green)" : "var(--ink-3)";
   }
-  document.getElementById("ddayCard").addEventListener("click", () => {
-    const cur = store.get("dday", { date: "", label: "ADsP" });
-    const date = prompt("시험일을 입력하세요 (YYYY-MM-DD)", cur.date || "2026-08-30");
-    if (!date) return;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return toast("날짜 형식이 올바르지 않아요 (YYYY-MM-DD)");
-    const label = prompt("시험 이름", cur.label || "ADsP") || "시험";
-    store.set("dday", { date, label });
-    renderDday();
-    toast("D-day가 설정되었습니다");
+
+  /* D-day 설정 모달 */
+  const ddayModal = document.getElementById("ddayModal");
+  let ddayCertSel = "adsp";
+  function openDdayModal() {
+    const cur = store.get("dday", null) || {};
+    document.getElementById("ddayDate").value = cur.date || "";
+    ddayCertSel = cur.cert && CERTS[cur.cert] ? cur.cert : "adsp";
+    document.getElementById("ddayCert").querySelectorAll("button").forEach((b) => {
+      b.classList.toggle("on", b.dataset.cert === ddayCertSel);
+    });
+    ddayModal.classList.add("show");
+  }
+  document.getElementById("ddayCard").addEventListener("click", openDdayModal);
+  document.getElementById("ddayCert").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    ddayCertSel = b.dataset.cert;
+    document.getElementById("ddayCert").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
   });
+  document.getElementById("ddaySave").addEventListener("click", () => {
+    const date = document.getElementById("ddayDate").value;
+    if (!date) return toast("시험 날짜를 선택해 주세요");
+    store.set("dday", { date, cert: ddayCertSel, label: CERTS[ddayCertSel].name });
+    ddayModal.classList.remove("show");
+    renderDday();
+    toast("시험일과 학습 계획을 설정했어요 🎯");
+  });
+  document.getElementById("ddayClear").addEventListener("click", () => {
+    store.remove("dday");
+    ddayModal.classList.remove("show");
+    renderDday();
+    toast("D-day를 해제했어요");
+  });
+  document.getElementById("ddayCancel").addEventListener("click", () => ddayModal.classList.remove("show"));
+  ddayModal.addEventListener("click", (e) => { if (e.target === ddayModal) ddayModal.classList.remove("show"); });
+
   renderDday();
 
   /* ---- 오늘의 복습 (SRS) ---- */

@@ -388,7 +388,10 @@ a.card { text-decoration: none; color: inherit; display: block; }
 .pal-btn .bm { position: absolute; top: -4px; right: -3px; font-size: 0.65rem; }
 
 .side-actions { display: flex; flex-direction: column; gap: 8px; }
-.timer-box { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.3rem; letter-spacing: -0.01em; }
+.timer-box { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.3rem; letter-spacing: -0.01em; transition: color 0.2s ease; }
+.timer-box.timer-warn { color: var(--amber); }
+.timer-box.timer-danger { color: var(--red); animation: timer-pulse 1s ease-in-out infinite; }
+@keyframes timer-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
 /* ---------- result modal ---------- */
 .modal-back {
@@ -508,6 +511,27 @@ pre.code-block .code-lang {
 .tk-com { color: var(--tk-com); font-style: italic; }
 .tk-fn { color: var(--tk-fn); }
 .tk-pre { color: var(--tk-pre); font-weight: 700; }
+
+/* 학습 계획 */
+.plan-target {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-top: 16px; font-size: 0.84rem; color: var(--ink-3); font-weight: 700;
+}
+.plan-target b { font-size: 1.15rem; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+
+/* 모달 폼 요소 */
+.field-label {
+  display: block; font-size: 0.78rem; font-weight: 700; color: var(--ink-3);
+  margin: 18px 0 6px; letter-spacing: 0.02em;
+}
+.field {
+  width: 100%; padding: 11px 14px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink);
+  font-family: inherit; font-size: 0.95rem; font-weight: 600;
+}
+.field:focus { outline: none; border-color: var(--accent); }
+#ddayCert { display: flex; }
+#ddayCert button { flex: 1; }
 
 /* 오프라인 배너 */
 .offline-banner {

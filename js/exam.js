@@ -21,14 +21,24 @@
     setupView.style.display = "block";
     $("setupTitle").textContent = cert.name + " 기출문제";
     $("setupCount").textContent = cert.rounds.length + "회분";
-    $("setupDesc").innerHTML = `<b>연습 모드</b>는 문제별로 <b>정답·해설 확인</b> 버튼을 눌러 확인하고, <b>실전 모드</b>는 전부 푼 뒤 제출하면 채점돼요 (합격 ${cert.passScore}점${cert.failScore ? ` · 과목별 과락 ${cert.failScore}%` : ""}).` + (certId === "practical" ? " 실기는 필답형이라 답을 적고 자가채점하는 방식이에요." : "");
-
     let selMode = "practice";
+
+    function renderSetupDesc() {
+      const base = `<b>연습 모드</b>는 문제별로 <b>정답·해설 확인</b> 버튼을 눌러 확인하고, <b>실전 모드</b>는 전부 푼 뒤 제출하면 채점돼요 (합격 ${cert.passScore}점${cert.failScore ? ` · 과목별 과락 ${cert.failScore}%` : ""}).`;
+      const timed = selMode === "exam" && cert.timeLimit
+        ? ` ⏱ 실전 모드는 실제 시험시간 <b>${cert.timeLimit}분</b>을 카운트다운하고, 시간이 끝나면 자동 제출돼요.`
+        : "";
+      const prac = certId === "practical" ? " 실기는 필답형이라 답을 적고 자가채점하는 방식이에요." : "";
+      $("setupDesc").innerHTML = base + timed + prac;
+    }
+    renderSetupDesc();
+
     $("modeSeg").addEventListener("click", (e) => {
       const b = e.target.closest("button");
       if (!b) return;
       selMode = b.dataset.mode;
       $("modeSeg").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+      renderSetupDesc();
       renderRounds();
     });
 
@@ -394,14 +404,17 @@
   }
 
   /* ============ 제출 (실전 모드/전체 채점) ============ */
-  function submit() {
-    if (!questions.length) return;
-    const unanswered = questions.filter((Q) => {
-      if (Q.id in graded) return false;
-      if (Q.type === "choice") return !(sel[Q.id] && sel[Q.id].size);
-      return !store.get("shortDraft." + Q.id, "") && !(Q.id in graded);
-    }).length;
-    if (unanswered && !confirm(`안 푼 문제가 ${unanswered}개 있어요. 그래도 제출할까요?`)) return;
+  /* auto=true 는 시험 시간 종료로 인한 강제 제출 (확인 없이 진행) */
+  function submit(auto) {
+    if (!questions.length || submitted) return;
+    if (!auto) {
+      const unanswered = questions.filter((Q) => {
+        if (Q.id in graded) return false;
+        if (Q.type === "choice") return !(sel[Q.id] && sel[Q.id].size);
+        return !store.get("shortDraft." + Q.id, "") && !(Q.id in graded);
+      }).length;
+      if (unanswered && !confirm(`안 푼 문제가 ${unanswered}개 있어요. 그래도 제출할까요?`)) return;
+    }
 
     submitted = true;
     stopTimer();
@@ -461,16 +474,49 @@
   }
 
   /* ============ 타이머 ============ */
+  /* 실전 모드(회차 전체 응시)에서는 실제 시험시간을 카운트다운하고,
+     그 외에는 경과 시간을 센다. */
   let timerH = null, elapsed = 0;
-  function startTimer() {
-    timerH = setInterval(() => {
-      elapsed++;
-      const m = String(Math.floor(elapsed / 60)).padStart(2, "0");
-      const s = String(elapsed % 60).padStart(2, "0");
-      $("timer").textContent = m + ":" + s;
-    }, 1000);
+  const isTimedExam = isExamMode && !!round && !!cert.timeLimit;
+  const limitSec = isTimedExam ? cert.timeLimit * 60 : 0;
+
+  function fmt(sec) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return (h ? h + ":" + String(m).padStart(2, "0") : String(m).padStart(2, "0")) + ":" + String(s).padStart(2, "0");
   }
-  function stopTimer() { clearInterval(timerH); }
+
+  // 탭이 백그라운드면 setInterval이 스로틀되어 특정 초를 건너뛸 수 있으므로
+  // "정확히 그 초"가 아니라 "임계값을 지났는지"로 판단한다.
+  const alerted = new Set();
+  function renderTimer() {
+    const box = $("timer");
+    if (!isTimedExam) { box.textContent = fmt(elapsed); return; }
+    const left = Math.max(0, limitSec - elapsed);
+    box.textContent = fmt(left);
+    box.classList.toggle("timer-warn", left <= 600 && left > 300);
+    box.classList.toggle("timer-danger", left <= 300 && left > 0);
+    for (const min of [10, 5, 1]) {
+      if (left <= min * 60 && left > 0 && !alerted.has(min)) {
+        alerted.add(min);
+        toast(`⏰ ${min}분 남았어요`);
+        break;
+      }
+    }
+    if (left === 0 && !submitted) {
+      stopTimer();
+      toast("⏰ 시험 시간이 끝났어요 — 자동 제출합니다");
+      submit(true);
+    }
+  }
+
+  function startTimer() {
+    if (isTimedExam) $("timerLabel").textContent = "남은 시간";
+    renderTimer();
+    timerH = setInterval(() => { elapsed++; renderTimer(); }, 1000);
+  }
+  function stopTimer() { clearInterval(timerH); timerH = null; }
 
   function saveSession() {
     if (round) store.set("lastSession", { cert: certId, round: q().round, number: q().number, mode: mode || "practice" });
