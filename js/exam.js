@@ -453,6 +453,16 @@
     el.style.display = "";
   }
 
+  const EX_WARN_LABEL = {
+    mismatch: "AI가 저장된 정답과 <b>다른 번호</b>를 정답이라고 설명해요",
+    ambiguous: "AI가 정답 번호를 여러 개로 혼동해요",
+    outofrange: "AI가 존재하지 않는 보기 번호를 언급해요",
+    doubt: "AI가 문제나 정답에 이상이 있다고 지적해요",
+    lowrate: "전국 정답률이 40% 미만이라 <b>복원된 정답 자체가 틀렸을 가능성</b>이 있어요 (AI 해설은 그 정답에 맞춰 작성됩니다)",
+    truncated: "해설이 문장 중간에서 끊겼어요",
+    tooshort: "설명이 너무 짧아 근거가 부족해요",
+  };
+
   /* 해설 표시 — 정답이 공개되면 바로 펼친다.
      접어두길 원하는 사람도 있으니 토글 선택은 기억해서 다음 문제에도 적용한다. */
   function renderExplain() {
@@ -466,6 +476,17 @@
     let html = "";
     (ex.user || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">📝 등록자 해설</div>${c}</div>`; });
     (ex.ai || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">🤖 AI 해설 <span class="explain-warn">— 부정확할 수 있어요</span></div>${c}</div>`; });
+    // AI 해설 신뢰도 경고 (tools/audit-explanations.js가 기록한 플래그)
+    if (Q.exWarn && Q.exWarn.length && ex.ai && ex.ai.length) {
+      const SEVERE = ["mismatch", "outofrange"];
+      const severe = Q.exWarn.some((f) => SEVERE.includes(f));
+      const msg = Q.exWarn.map((f) => EX_WARN_LABEL[f]).filter(Boolean);
+      html = `<div class="explain-warnbox ${severe ? "severe" : ""}">
+        <b>${severe ? "⛔ 이 해설은 신뢰하지 마세요" : "⚠️ 이 해설은 특히 주의해서 보세요"}</b>
+        <ul>${msg.map((m) => `<li>${m}</li>`).join("")}</ul>
+        ${severe ? "정답 표기와 해설이 어긋납니다. IT위키 링크나 다른 자료로 반드시 교차 확인하세요." : "교차 확인을 권해요."}
+      </div>` + html;
+    }
     body.innerHTML = html;
     const open = store.get("explainOpen", true);
     body.style.display = open ? "" : "none";
