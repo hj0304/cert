@@ -113,14 +113,18 @@
   }
 
   /* ============ 문제 데이터 로딩 ============ */
-  let questions = [];   // [{...q, round}]
+  let questions = [];      // 실제로 푸는 목록 (과목 필터가 걸리면 부분집합)
+  let roundAll = [];       // 회차 전체 — 과목 필터 전환용 원본
   let title = "";
+  let baseTitle = "";
 
   async function loadQuestions() {
     if (round) {
       const data = await loadExamData(certId, round);
-      questions = data.questions.map((q) => ({ ...q, round }));
-      title = cert.name + " " + roundLabel(round, certId);
+      roundAll = data.questions.map((q) => ({ ...q, round }));
+      questions = roundAll;
+      baseTitle = cert.name + " " + roundLabel(round, certId);
+      title = baseTitle;
     } else if (mode === "random" || mode === "weak") {
       const all = [];
       // 실기(전부 단답형) 자격증은 단답형도 랜덤/약점 풀에 포함
@@ -224,6 +228,47 @@
       pool.splice(idx, 1);
     }
     return picked;
+  }
+
+  /* ============ 회차 내 과목 필터 ============
+     42회에 들어와서 "데이터 이해"만 골라 풀 수 있게 한다.
+     실전 모드는 회차 전체를 응시하는 것이 원칙이라 필터를 걸지 않는다. */
+  let curSubject = subjectParam || ""; // "" = 전체
+
+  function subjectsInRound() {
+    const counts = {};
+    roundAll.forEach((q) => { if (q.category) counts[q.category] = (counts[q.category] || 0) + 1; });
+    // CERTS에 정의된 과목 순서를 지키고, 정의 밖 과목은 뒤에 붙인다
+    const ordered = (cert.subjects || []).filter((s) => counts[s]);
+    Object.keys(counts).forEach((s) => { if (!ordered.includes(s)) ordered.push(s); });
+    return ordered.map((s) => ({ name: s, count: counts[s] }));
+  }
+
+  function renderSubjectFilter() {
+    const bar = $("subjectFilter");
+    const list = subjectsInRound();
+    if (!round || isExamMode || list.length < 2) { bar.style.display = "none"; return; }
+    bar.style.display = "";
+    $("sfChips").innerHTML =
+      `<button class="sf-chip ${curSubject ? "" : "on"}" data-subject="">전체<span class="sf-count">${roundAll.length}</span></button>` +
+      list
+        .map((s) => `<button class="sf-chip ${curSubject === s.name ? "on" : ""}" data-subject="${esc(s.name)}">${esc(s.name)}<span class="sf-count">${s.count}</span></button>`)
+        .join("");
+  }
+
+  function applySubjectFilter(next) {
+    curSubject = next || "";
+    questions = curSubject ? roundAll.filter((q) => q.category === curSubject) : roundAll;
+    cur = 0;
+    title = baseTitle + (curSubject ? " · " + curSubject : "");
+    $("examTitle").textContent = title;
+    // 새로고침·공유해도 같은 과목이 열리도록 주소를 갱신 (히스토리는 쌓지 않음)
+    const u = new URL(location.href);
+    if (curSubject) u.searchParams.set("subject", curSubject);
+    else u.searchParams.delete("subject");
+    history.replaceState(null, "", u);
+    renderSubjectFilter();
+    renderQuestion();
   }
 
   /* ============ 상태 ============ */
@@ -677,6 +722,12 @@
       }
       loadingView.style.display = "none";
       examView.style.display = "block";
+      // 회차 진입 시 URL에 subject가 있으면 그 과목만 (과목 필터 초기 적용)
+      if (round && curSubject) {
+        const filtered = roundAll.filter((q) => q.category === curSubject);
+        if (filtered.length) { questions = filtered; title = baseTitle + " · " + curSubject; }
+        else curSubject = "";
+      }
       $("backToSetup").href = "exam.html?cert=" + certId;
       $("goWrongNote").href = "exam.html?cert=" + certId + "&mode=wrong";
       if (mode === "wrong" || mode === "bookmark") $("aiExportBtn").style.display = "";
@@ -688,6 +739,13 @@
         const i = questions.findIndex((Q) => Q.number === parseInt(hm[1], 10));
         if (i >= 0) cur = i;
       }
+      renderSubjectFilter();
+      $("sfChips").addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-subject]");
+        if (!b) return;
+        if (b.dataset.subject === curSubject) return;
+        applySubjectFilter(b.dataset.subject);
+      });
       renderQuestion();
       startTimer();
     })
