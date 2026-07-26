@@ -281,7 +281,40 @@ a.card { text-decoration: none; color: inherit; display: block; }
 .q-card {
   background: var(--surface); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 30px; box-shadow: var(--shadow);
+  position: relative; /* 펜 캔버스 오버레이 기준 */
 }
+
+/* ============================================================
+   연습장 펜
+   ============================================================ */
+.pen-canvas {
+  position: absolute; inset: 0; z-index: 5;
+  border-radius: var(--radius);
+  pointer-events: none; /* 펜 모드가 아닐 땐 잉크만 보이고 클릭은 통과 */
+}
+.pen-canvas.pen-on {
+  pointer-events: auto;
+  touch-action: none; /* 터치 필기 중 스크롤 방지 */
+  cursor: crosshair;
+}
+.pen-toolbar {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  z-index: 6; display: flex; align-items: center; gap: 4px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 999px; padding: 5px 8px; box-shadow: var(--shadow-hover);
+}
+.pen-btn {
+  width: 32px; height: 32px; border: none; border-radius: 50%;
+  background: transparent; cursor: pointer; font-size: 0.95rem;
+  display: grid; place-items: center; font-family: inherit;
+  transition: background 0.12s ease;
+}
+.pen-btn:hover { background: var(--surface-2); }
+.pen-btn.on { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.pen-btn:disabled { opacity: 0.35; cursor: default; }
+.pen-btn .dot { width: 14px; height: 14px; border-radius: 50%; display: block; border: 1px solid rgba(0,0,0,0.15); }
+.pen-sep { width: 1px; height: 18px; background: var(--line); margin: 0 3px; }
+.icon-btn.pen-active { color: var(--accent-ink); box-shadow: inset 0 0 0 1.5px var(--accent); }
 .q-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .q-number { font-size: 0.9rem; font-weight: 800; color: var(--accent-ink); }
 .q-subject { font-size: 1.08rem; font-weight: 700; line-height: 1.65; letter-spacing: -0.01em; white-space: pre-line; }

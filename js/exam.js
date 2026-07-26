@@ -344,6 +344,9 @@
       highlightCodeIn($("choiceList"));
     }
 
+    // 연습장 펜 — 이 문제의 필기를 불러온다
+    if (window.penTool) penTool.setQuestion(Q.id);
+
     renderExplain();
     $("checkBtn").style.display =
       (Q.type === "choice" && !(Q.id in graded) && !peeked[Q.id] && (!isExamMode || submitted)) ? "" : "none";
@@ -763,6 +766,7 @@
         const i = questions.findIndex((Q) => Q.number === parseInt(hm[1], 10));
         if (i >= 0) cur = i;
       }
+      if (window.penTool) penTool.init($("qCard"), $("penBtn"));
       renderSubjectFilter();
       $("sfChips").addEventListener("click", (e) => {
         const b = e.target.closest("button[data-subject]");
