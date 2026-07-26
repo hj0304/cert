@@ -21,6 +21,7 @@
     setupView.style.display = "block";
     $("setupTitle").textContent = cert.name + " 기출문제";
     $("setupCount").textContent = cert.rounds.length + "회분";
+    $("setupDesc").innerHTML = `<b>연습 모드</b>는 문제별로 <b>정답·해설 확인</b> 버튼을 눌러 확인하고, <b>실전 모드</b>는 전부 푼 뒤 제출하면 채점돼요 (합격 ${cert.passScore}점${cert.failScore ? ` · 과목별 과락 ${cert.failScore}%` : ""}).` + (certId === "practical" ? " 실기는 필답형이라 답을 적고 자가채점하는 방식이에요." : "");
 
     let selMode = "practice";
     $("modeSeg").addEventListener("click", (e) => {
@@ -49,7 +50,7 @@
             done ? done + "문제 학습함" : "",
           ].filter(Boolean).join(" · ");
           return `<div class="card round-card">
-            <h3>${roundLabel(r)}</h3>
+            <h3>${roundLabel(r, certId)}</h3>
             <div class="meta">${metaBits || "아직 안 풀었어요"}</div>
             <div class="go-row">
               <a class="btn sm primary" href="exam.html?cert=${certId}&round=${r}&mode=${selMode}">${selMode === "exam" ? "실전 응시" : "연습 시작"}</a>
@@ -70,12 +71,14 @@
     if (round) {
       const data = await loadExamData(certId, round);
       questions = data.questions.map((q) => ({ ...q, round }));
-      title = cert.name + " " + roundLabel(round);
+      title = cert.name + " " + roundLabel(round, certId);
     } else if (mode === "random" || mode === "weak") {
       const all = [];
+      // 실기(전부 단답형) 자격증은 단답형도 랜덤/약점 풀에 포함
+      const allowShort = !cert.subjects || cert.id === "practical";
       for (const r of cert.rounds) {
         const data = await loadExamData(certId, r);
-        data.questions.forEach((q) => { if (q.type === "choice") all.push({ ...q, round: r }); });
+        data.questions.forEach((q) => { if (q.type === "choice" || allowShort) all.push({ ...q, round: r }); });
       }
       if (mode === "random") {
         questions = shuffle(all).slice(0, 20);
@@ -162,7 +165,7 @@
   function renderQuestion() {
     const Q = q();
     if (!Q) return;
-    $("qNumber").textContent = (["random", "wrong", "bookmark", "review", "weak"].includes(mode) ? roundLabel(Q.round) + " · " : "") + Q.number + "번";
+    $("qNumber").textContent = (["random", "wrong", "bookmark", "review", "weak"].includes(mode) ? roundLabel(Q.round, certId) + " · " : "") + Q.number + "번";
     $("qRate").style.display = "none";
     $("qCategory").textContent = Q.category || "기타";
     $("qTypeBadge").style.display = Q.type === "short" ? "" : "none";
@@ -427,7 +430,7 @@
 
     $("resultNote").textContent =
       (shortsPending ? `단답형 ${shortsPending}문제는 아직 자가채점 전이에요. 닫고 정답을 확인한 뒤 직접 채점하면 점수에 반영돼요. ` : "") +
-      `합격 ${cert.passScore}점 이상 · 과목별 ${cert.failScore}% 미만 과락 기준.`;
+      `합격 ${cert.passScore}점 이상` + (cert.failScore ? ` · 과목별 ${cert.failScore}% 미만 과락 기준.` : " 기준.");
     $("resultModal").classList.add("show");
   }
 

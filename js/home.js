@@ -92,13 +92,14 @@
       .map((r) => {
         const done = solvedByRound[r] || 0;
         const need = ((cert.roundInfo || {})[r] || {}).count || 50;
-        return `<span class="chip ${done >= need * 0.8 ? "done" : ""}">${roundLabel(r).replace(" (1·2회 통합)", "")}${done ? ` · ${done}` : ""}</span>`;
+        return `<span class="chip ${done >= need * 0.8 ? "done" : ""}">${roundLabel(r)}${done ? ` · ${done}` : ""}</span>`;
       })
       .join("");
     return ids;
   }
   const adspIds = renderCertCard(CERTS.adsp, "adspSolved", "adspProgress", "adspChips");
   const engIds = renderCertCard(CERTS.engineer, "engSolved", "engProgress", "engChips");
+  const pracIds = renderCertCard(CERTS.practical, "pracSolved", "pracProgress", "pracChips");
 
   /* ---- 오답노트 미리보기 ---- */
   const wrongRows = document.getElementById("wrongRows");
@@ -116,7 +117,7 @@
   /* ---- 과목별 정답률 (자격증 통합) ---- */
   const subjRows = document.getElementById("subjectRows");
   const rowsHtml = [];
-  [["adsp", adspIds], ["engineer", engIds]].forEach(([cid, ids]) => {
+  [["adsp", adspIds], ["engineer", engIds], ["practical", pracIds]].forEach(([cid, ids]) => {
     const cert = CERTS[cid];
     const bySubject = {};
     ids.forEach((id) => {
@@ -176,7 +177,8 @@
   /* ---- 오늘의 복습 (SRS) ---- */
   const dueAdsp = getDueIds("adsp");
   const dueEng = getDueIds("engineer");
-  document.getElementById("dueNum").textContent = dueAdsp.length + dueEng.length;
+  const duePrac = getDueIds("practical");
+  document.getElementById("dueNum").textContent = dueAdsp.length + dueEng.length + duePrac.length;
   if (dueAdsp.length) {
     document.getElementById("dueAdsp").style.display = "";
     document.getElementById("dueAdspN").textContent = dueAdsp.length;
@@ -185,12 +187,16 @@
     document.getElementById("dueEng").style.display = "";
     document.getElementById("dueEngN").textContent = dueEng.length;
   }
-  if (dueAdsp.length || dueEng.length) document.getElementById("dueEmpty").style.display = "none";
+  if (duePrac.length) {
+    document.getElementById("duePrac").style.display = "";
+    document.getElementById("duePracN").textContent = duePrac.length;
+  }
+  if (dueAdsp.length || dueEng.length || duePrac.length) document.getElementById("dueEmpty").style.display = "none";
 
   /* ---- 합격 예측 ---- */
   const predictRows = document.getElementById("predictRows");
   const predictHtml = [];
-  ["adsp", "engineer"].forEach((cid) => {
+  ["adsp", "engineer", "practical"].forEach((cid) => {
     const cert = CERTS[cid];
     const perf = subjectPerformance(cid);
     const attempted = Object.values(perf).reduce((n, o) => n + o.a, 0);
@@ -227,17 +233,18 @@
   const last = store.get("lastSession", null);
   if (last && CERTS[last.cert]) {
     const btn = document.getElementById("continueBtn");
-    btn.textContent = `이어서 풀기 — ${CERTS[last.cert].name} ${roundLabel(last.round)} ${last.number}번 →`;
+    btn.textContent = `이어서 풀기 — ${CERTS[last.cert].name} ${roundLabel(last.round, last.cert)} ${last.number}번 →`;
     btn.href = `exam.html?cert=${last.cert}&round=${last.round}&mode=${last.mode || "practice"}#q${last.number}`;
   }
 
   /* 복습 대기가 있으면 히어로에 CTA 추가 */
-  const totalDue = dueAdsp.length + dueEng.length;
+  const totalDue = dueAdsp.length + dueEng.length + duePrac.length;
   if (totalDue) {
     const foot = document.querySelector(".hero-foot");
     const a = document.createElement("a");
     a.className = "btn ghost-hero";
-    const target = dueAdsp.length >= dueEng.length ? "adsp" : "engineer";
+    const counts = [["adsp", dueAdsp.length], ["engineer", dueEng.length], ["practical", duePrac.length]];
+    const target = counts.sort((x, y) => y[1] - x[1])[0][0];
     a.href = `exam.html?cert=${target}&mode=review`;
     a.textContent = `🌱 오늘의 복습 ${totalDue}문제`;
     foot.insertBefore(a, foot.children[1]);

@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202607251620";
+const BUILD = "202607260150";
 
 const CERTS = {
   adsp: {
@@ -35,10 +35,32 @@ const CERTS = {
     roundInfo: {
       "2022-2": { count: 100 }, "2022-1": { count: 100 },
       "2021-3": { count: 100 }, "2021-2": { count: 99 }, "2021-1": { count: 100 },
-      "2020-4": { count: 100 }, "2020-3": { count: 100 }, "2020-1": { count: 100 },
+      "2020-4": { count: 100 }, "2020-3": { count: 100 },
+      "2020-1": { count: 100, label: "2020년 1회 (1·2회 통합)" },
     },
     subjects: ["소프트웨어 설계", "소프트웨어 개발", "데이터베이스 구축", "프로그래밍 언어 활용", "정보시스템 구축관리"],
     total: 799,
+    ready: true,
+  },
+  practical: {
+    id: "practical",
+    name: "정처기 실기",
+    fullName: "정보처리기사 실기",
+    icon: "📝",
+    passScore: 60,
+    failScore: 0, // 단일 과목 필답형 — 과락 없음
+    // 필답형이라 CBT 전환 없이 매 회차 복원 문제가 공개됨 (최신 회차 포함)
+    rounds: ["2025-3", "2025-2", "2025-1", "2024-3", "2024-2", "2024-1", "2023-3", "2023-2", "2023-1", "2022-3", "2022-2", "2022-1", "2021-3", "2021-2", "2021-1", "2020-4", "2020-3", "2020-2", "2020-1"],
+    roundInfo: {
+      "2025-3": { count: 18 }, "2025-2": { count: 20 }, "2025-1": { count: 20 },
+      "2024-3": { count: 18 }, "2024-2": { count: 20 }, "2024-1": { count: 20 },
+      "2023-3": { count: 20 }, "2023-2": { count: 20 }, "2023-1": { count: 20 },
+      "2022-3": { count: 20 }, "2022-2": { count: 20 }, "2022-1": { count: 20 },
+      "2021-3": { count: 20 }, "2021-2": { count: 20 }, "2021-1": { count: 20 },
+      "2020-4": { count: 20 }, "2020-3": { count: 20 }, "2020-2": { count: 20 }, "2020-1": { count: 20 },
+    },
+    subjects: ["실기"],
+    total: 376,
     ready: true,
   },
 };
@@ -234,11 +256,14 @@ function subjectPerformance(certId) {
   return by;
 }
 
-/* 회차 표시 라벨: 42 → "42회", "2020-1" → "2020년 1회" */
-function roundLabel(r) {
+/* 회차 표시 라벨: 42 → "42회", "2020-1" → "2020년 1회"
+   certId를 주면 roundInfo의 커스텀 label 우선 (예: 필기 2020-1 = 1·2회 통합) */
+function roundLabel(r, certId) {
   const s = String(r);
+  const info = certId && CERTS[certId] && (CERTS[certId].roundInfo || {})[s];
+  if (info && info.label) return info.label;
   const m = s.match(/^(\d{4})-(\d)$/);
-  if (m) return m[1] + "년 " + m[2] + "회" + (s === "2020-1" ? " (1·2회 통합)" : "");
+  if (m) return m[1] + "년 " + m[2] + "회";
   return s + "회";
 }
 

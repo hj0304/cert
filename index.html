@@ -9,8 +9,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#5b5bd6" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-  <link rel="stylesheet" href="css/style.css?v=202607251620" />
-  <link rel="stylesheet" href="css/skins.css?v=202607251620" />
+  <link rel="stylesheet" href="css/style.css?v=202607260150" />
+  <link rel="stylesheet" href="css/skins.css?v=202607260150" />
 </head>
 <body>
   <div class="wrap">
@@ -35,7 +35,8 @@
         <div class="hero-foot">
           <a class="btn on-hero" id="continueBtn" href="exam.html?cert=adsp">ADsP 풀러 가기 →</a>
           <a class="btn ghost-hero" href="exam.html?cert=adsp&mode=random">ADsP 랜덤 20제</a>
-          <a class="btn ghost-hero" href="exam.html?cert=engineer&mode=random">정처기 랜덤 20제</a>
+          <a class="btn ghost-hero" href="exam.html?cert=engineer&mode=random">필기 랜덤 20제</a>
+          <a class="btn ghost-hero" href="exam.html?cert=practical&mode=random">실기 랜덤 20제</a>
         </div>
       </section>
 
@@ -55,7 +56,7 @@
       </div>
 
       <!-- ADsP -->
-      <a class="card span-6" href="exam.html?cert=adsp">
+      <a class="card span-4" href="exam.html?cert=adsp">
         <div class="cert-icon" style="background:var(--accent-soft)">📊</div>
         <span class="pill accent" style="position:absolute;top:26px;right:26px">진행 중</span>
         <h2>ADsP</h2>
@@ -65,8 +66,8 @@
         <div class="round-chips" id="adspChips"></div>
       </a>
 
-      <!-- 정처기 -->
-      <a class="card span-6" href="exam.html?cert=engineer">
+      <!-- 정처기 필기 -->
+      <a class="card span-4" href="exam.html?cert=engineer">
         <div class="cert-icon" style="background:var(--teal-soft)">💻</div>
         <span class="pill teal" style="position:absolute;top:26px;right:26px">진행 중</span>
         <h2>정보처리기사 <span style="font-weight:600;font-size:.9rem;color:var(--ink-3)">필기</span></h2>
@@ -76,6 +77,17 @@
         <div class="round-chips" id="engChips"></div>
       </a>
 
+      <!-- 정처기 실기 -->
+      <a class="card span-4" href="exam.html?cert=practical">
+        <div class="cert-icon" style="background:var(--amber-soft)">📝</div>
+        <span class="pill amber" style="position:absolute;top:26px;right:26px">진행 중</span>
+        <h2>정보처리기사 <span style="font-weight:600;font-size:.9rem;color:var(--ink-3)">실기</span></h2>
+        <div class="desc">필답형 복원 기출 19회분 (2020~2025)</div>
+        <div class="progress-track"><div class="progress-fill" id="pracProgress" style="width:0%"></div></div>
+        <div class="desc" style="margin-top:8px;font-size:.82rem"><span id="pracSolved">0</span> / <span id="pracTotal">376</span> 문제 학습</div>
+        <div class="round-chips" id="pracChips"></div>
+      </a>
+
       <!-- 오늘의 복습 (간격 반복) -->
       <div class="card span-4">
         <div class="kicker">🌱 오늘의 복습</div>
@@ -83,7 +95,8 @@
         <div class="desc">망각곡선에 맞춰 다시 볼 시간이 된 문제들 (1→3→7→21일 간격)</div>
         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap" id="dueBtns">
           <a class="btn sm ghost" id="dueAdsp" href="exam.html?cert=adsp&mode=review" style="display:none">ADsP <b id="dueAdspN"></b></a>
-          <a class="btn sm ghost" id="dueEng" href="exam.html?cert=engineer&mode=review" style="display:none">정처기 <b id="dueEngN"></b></a>
+          <a class="btn sm ghost" id="dueEng" href="exam.html?cert=engineer&mode=review" style="display:none">필기 <b id="dueEngN"></b></a>
+          <a class="btn sm ghost" id="duePrac" href="exam.html?cert=practical&mode=review" style="display:none">실기 <b id="duePracN"></b></a>
           <span class="empty-note" id="dueEmpty" style="margin-top:0">아직 복습 대기 문제가 없어요</span>
         </div>
         <button class="btn sm ghost" id="notifyBtn" style="margin-top:10px">🔔 복습 알림 켜기</button>
@@ -97,8 +110,9 @@
           <div class="empty-note">문제를 30개 이상 풀면 과목별 예상 점수와 과락 위험을 계산해드려요</div>
         </div>
         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-          <a class="btn sm ghost" href="exam.html?cert=adsp&mode=weak">ADsP 약점 저격 20제</a>
-          <a class="btn sm ghost" href="exam.html?cert=engineer&mode=weak">정처기 약점 저격 20제</a>
+          <a class="btn sm ghost" href="exam.html?cert=adsp&mode=weak">ADsP 약점 20제</a>
+          <a class="btn sm ghost" href="exam.html?cert=engineer&mode=weak">필기 약점 20제</a>
+          <a class="btn sm ghost" href="exam.html?cert=practical&mode=weak">실기 약점 20제</a>
         </div>
       </div>
 
@@ -109,7 +123,8 @@
         <div class="desc">틀린 문제만 다시 풀어 약점을 없애요</div>
         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
           <a class="btn sm ghost" href="exam.html?cert=adsp&mode=wrong">ADsP</a>
-          <a class="btn sm ghost" href="exam.html?cert=engineer&mode=wrong">정처기</a>
+          <a class="btn sm ghost" href="exam.html?cert=engineer&mode=wrong">필기</a>
+          <a class="btn sm ghost" href="exam.html?cert=practical&mode=wrong">실기</a>
         </div>
         <div class="rows" id="wrongRows"></div>
       </div>
@@ -121,7 +136,8 @@
         <div class="desc">다시 보고 싶은 문제 모음</div>
         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
           <a class="btn sm ghost" href="exam.html?cert=adsp&mode=bookmark">ADsP</a>
-          <a class="btn sm ghost" href="exam.html?cert=engineer&mode=bookmark">정처기</a>
+          <a class="btn sm ghost" href="exam.html?cert=engineer&mode=bookmark">필기</a>
+          <a class="btn sm ghost" href="exam.html?cert=practical&mode=bookmark">실기</a>
         </div>
       </div>
 
@@ -140,7 +156,7 @@
     </footer>
   </div>
 
-  <script src="js/common.js?v=202607251620"></script>
-  <script src="js/home.js?v=202607251620"></script>
+  <script src="js/common.js?v=202607260150"></script>
+  <script src="js/home.js?v=202607260150"></script>
 </body>
 </html>
