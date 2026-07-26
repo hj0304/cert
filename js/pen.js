@@ -2,7 +2,8 @@
    실제 시험지에 펜으로 풀듯 계산·코드 추적을 손으로 할 수 있다.
 
    - 스트로크 단위로 저장해 실행취소가 가능하고, 지우개는 destination-out으로 그린다.
-   - 필기는 문제 id별로 세션 메모리에 보관 → 문제를 오가도 그대로 남는다 (새로고침 시 초기화).
+   - 필기는 문제 id별로 localStorage(cert.ink)에 영구 저장 → 새로고침해도 남는다.
+     저장 시점의 카드 폭을 함께 기록해, 창 크기가 달라지면 비율대로 스케일해 복원한다.
    - Pointer Events로 마우스·터치·스타일러스를 함께 지원한다. */
 
 (function () {
@@ -28,8 +29,80 @@
 
   function strokes() {
     if (!qid) return [];
-    if (!inkByQid.has(qid)) inkByQid.set(qid, []);
+    if (!inkByQid.has(qid)) inkByQid.set(qid, saved[qid] ? hydrate(qid) : []);
     return inkByQid.get(qid);
+  }
+
+  /* ---------- 영구 저장 (localStorage) ---------- */
+  const INK_KEY = "cert.ink";
+  const INK_BUDGET = 1500000; // 문자 수 ≈ 1.5MB. localStorage 한도(보통 5MB) 대비 여유
+  let saved = {};             // qid -> { t: 마지막 사용, w: 저장 시 카드 폭, s: [압축 스트로크] }
+  let saveTimer = null;
+
+  function loadSaved() {
+    try { saved = JSON.parse(localStorage.getItem(INK_KEY)) || {}; } catch (e) { saved = {}; }
+  }
+
+  function pack(s) {
+    const p = [];
+    for (const pt of s.points) p.push(Math.round(pt.x * 10) / 10, Math.round(pt.y * 10) / 10);
+    const o = { m: s.mode === "eraser" ? "e" : s.mode === "highlight" ? "h" : "p", w: s.width, p };
+    if (o.m === "p") o.c = s.pen;
+    return o;
+  }
+
+  function unpack(o, k) {
+    const points = [];
+    for (let i = 0; i < o.p.length; i += 2) points.push({ x: o.p[i] * k, y: o.p[i + 1] * k });
+    return o.m === "e" ? { mode: "eraser", width: o.w, points }
+      : o.m === "h" ? { mode: "highlight", width: o.w, points }
+      : { mode: "pen", pen: o.c || "black", width: o.w, points };
+  }
+
+  function hydrate(id) {
+    const e = saved[id];
+    if (!e || !e.s) return [];
+    // 저장 당시와 카드 폭이 다르면 비율대로 스케일 (텍스트 리플로우까진 못 따라가는 근사치)
+    const k = (e.w > 0 && card && card.clientWidth > 0) ? card.clientWidth / e.w : 1;
+    return e.s.map((o) => unpack(o, k));
+  }
+
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveInk, 400);
+  }
+
+  function saveInk() {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    if (!qid || !card) return;
+    const list = inkByQid.get(qid) || [];
+    if (!list.length) delete saved[qid];
+    else saved[qid] = { t: Date.now(), w: card.clientWidth, s: list.map(pack) };
+    writeSaved();
+  }
+
+  function writeSaved() {
+    let json = JSON.stringify(saved);
+    while (json.length > INK_BUDGET && dropOldest()) json = JSON.stringify(saved);
+    try {
+      localStorage.setItem(INK_KEY, json);
+    } catch (e) {
+      // 쿼터 초과 — 오래 안 본 필기를 지우고 재시도
+      if (dropOldest()) writeSaved();
+    }
+  }
+
+  function dropOldest() {
+    let oldest = null;
+    for (const id in saved) {
+      if (id === qid) continue; // 지금 보는 문제는 마지막까지 지킨다
+      if (!oldest || (saved[id].t || 0) < (saved[oldest].t || 0)) oldest = id;
+    }
+    if (!oldest) return false;
+    delete saved[oldest];
+    inkByQid.delete(oldest);
+    return true;
   }
 
   /* ---------- 캔버스 크기 = 카드 크기 (레티나 대응) ---------- */
@@ -92,9 +165,14 @@
     if (s.mode === "eraser") {
       ctx.globalCompositeOperation = "destination-out";
       ctx.strokeStyle = "rgba(0,0,0,1)";
-    } else {
+    } else if (s.mode === "highlight") {
       ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = s.color;
+      ctx.strokeStyle = HIGHLIGHT.color;
+    } else {
+      // 색은 그릴 때마다 테마에 맞춰 결정 — 저장된 필기도 다크모드 전환을 따라간다
+      const pen = PENS.find((p) => p.id === s.pen) || PENS[0];
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = isDark() ? pen.colorDark : pen.color;
     }
   }
 
@@ -113,8 +191,8 @@
     const pen = PENS[penColorIdx];
     curStroke =
       tool === "eraser" ? { mode: "eraser", width: ERASER_WIDTH, points: [pos(e)] }
-      : tool === "highlight" ? { mode: "highlight", color: HIGHLIGHT.color, width: HIGHLIGHT.width, points: [pos(e)] }
-      : { mode: "pen", color: isDark() ? pen.colorDark : pen.color, width: pen.width, points: [pos(e)] };
+      : tool === "highlight" ? { mode: "highlight", width: HIGHLIGHT.width, points: [pos(e)] }
+      : { mode: "pen", pen: pen.id, width: pen.width, points: [pos(e)] };
     strokes().push(curStroke);
     redraw();
   }
@@ -125,7 +203,12 @@
     // coalesced events로 빠른 손글씨도 매끈하게 (빈 배열을 주는 경우가 있어 폴백)
     let evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
     if (!evs.length) evs = [e];
-    for (const ev of evs) curStroke.points.push(pos(ev));
+    for (const ev of evs) {
+      const pt = pos(ev);
+      const last = curStroke.points[curStroke.points.length - 1];
+      // 1px 미만 이동은 버려 저장 용량을 줄인다 (곡선 품질엔 영향 없음)
+      if (!last || Math.abs(pt.x - last.x) + Math.abs(pt.y - last.y) > 0.8) curStroke.points.push(pt);
+    }
     redraw();
   }
 
@@ -133,6 +216,7 @@
     drawing = false;
     curStroke = null;
     updateToolbar();
+    scheduleSave();
   }
 
   /* ---------- 툴바 ---------- */
@@ -154,8 +238,8 @@
       if (act === "pen") { tool = "pen"; penColorIdx = +b.dataset.idx; }
       else if (act === "highlight") tool = "highlight";
       else if (act === "eraser") tool = "eraser";
-      else if (act === "undo") { strokes().pop(); redraw(); }
-      else if (act === "clear") { if (!strokes().length || confirm("이 문제의 필기를 모두 지울까요?")) { inkByQid.set(qid, []); redraw(); } }
+      else if (act === "undo") { strokes().pop(); redraw(); scheduleSave(); }
+      else if (act === "clear") { if (!strokes().length || confirm("이 문제의 필기를 모두 지울까요?")) { inkByQid.set(qid, []); redraw(); scheduleSave(); } }
       else if (act === "close") setActive(false);
       updateToolbar();
     });
@@ -192,6 +276,7 @@
     init(cardEl, toggleBtn) {
       card = cardEl;
       penBtn = toggleBtn;
+      loadSaved();
       canvas = document.createElement("canvas");
       canvas.className = "pen-canvas";
       ctx = canvas.getContext("2d");
@@ -208,8 +293,14 @@
       document.addEventListener("keydown", (e) => {
         if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT") return;
         if (e.key.toLowerCase() === "p") setActive(!active);
-        else if (active && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { strokes().pop(); redraw(); updateToolbar(); }
+        else if (active && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { strokes().pop(); redraw(); updateToolbar(); scheduleSave(); }
       });
+
+      // 저장 디바운스가 걸린 채 탭을 닫거나 이동해도 필기가 유실되지 않게
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden" && saveTimer) saveInk();
+      });
+      window.addEventListener("pagehide", () => { if (saveTimer) saveInk(); });
 
       // 문제 내용이 바뀌어 카드 높이가 변해도 캔버스가 따라가게
       resizeObs = new ResizeObserver(fitCanvas);
@@ -219,6 +310,7 @@
 
     /* 문제가 바뀔 때마다 호출: 해당 문제의 필기를 불러온다 */
     setQuestion(id) {
+      if (saveTimer) saveInk(); // 이전 문제의 저장 대기분을 먼저 확정 (qid가 바뀌기 전에)
       qid = String(id);
       drawing = false;
       curStroke = null;

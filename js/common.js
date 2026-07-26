@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202607260855";
+const BUILD = "202607261315";
 
 const CERTS = {
   adsp: {
@@ -290,7 +290,7 @@ document.addEventListener("DOMContentLoaded", initOfflineBanner);
 document.addEventListener("DOMContentLoaded", () => { registerSW(); });
 
 /* ---------- 학습 기록 백업 ---------- */
-const BACKUP_KEYS = ["stats", "wrong", "bookmarks", "qindex", "days", "dday", "lastSession"];
+const BACKUP_KEYS = ["stats", "wrong", "bookmarks", "qindex", "days", "dday", "lastSession", "ink"];
 
 function exportRecords() {
   const data = {};
