@@ -144,9 +144,12 @@ function fixKorean(s) {
   out = out.replace(/다음중/g, "다음 중").replace(/보기중/g, "보기 중").replace(/설명중/g, "설명 중");
   out = out.replace(/에대한/g, "에 대한").replace(/에대해/g, "에 대해")
            .replace(/에관한/g, "에 관한").replace(/에의한/g, "에 의한");
-  // 구두점: 앞 공백 제거 → 뒤 공백 보장
-  out = out.replace(/ +([,.])(?=\s|$)/g, "$1");
+  // 구두점 — 순서가 중요하다. 뒤 공백을 먼저 넣고 나서 앞 공백을 지워야
+  // "이름 ,성별" 처럼 앞뒤가 동시에 틀린 경우가 "이름, 성별" 로 제대로 정리된다.
+  // (앞 공백 제거를 먼저 하면 쉼표 뒤가 한글이라 규칙이 안 걸려 " , " 가 남았다)
   out = out.replace(/,(?=[가-힣A-Za-z])/g, ", ");
+  out = out.replace(/ +([,.])/g, "$1");
+  out = out.replace(/([,.]) {2,}/g, "$1 ");
   return out;
 }
 
@@ -226,12 +229,16 @@ for (const cert of CERTS) {
 
       q.subject = fixField(q.subject, base + " 지문");
       if (q.extra != null) q.extra = fixField(q.extra, base + " 보조지문");
-      if (q.shortAnswer != null) q.shortAnswer = fixField(q.shortAnswer, base + " 정답", { skipKorean: true });
+      // 정답도 띄어쓰기·구두점을 정리한다. SQL이 답인 경우가 있지만 쉼표 뒤 공백은
+      // 의미가 전혀 바뀌지 않고(SELECT 학번, 이름), 숫자 뒤 쉼표는 규칙이 건드리지 않는다.
+      if (q.shortAnswer != null) q.shortAnswer = fixField(q.shortAnswer, base + " 정답");
       (q.choices || []).forEach((c) => { c.html = fixField(c.html, base + ` 보기${c.n}`); });
+      // 해설도 같은 띄어쓰기·구두점 규칙을 적용한다 (본문과 표기가 어긋나면 더 어색하다).
+      // 다만 shortAnswer(정답)는 SQL 같은 코드가 답인 경우가 있어 손대지 않는다.
       if (q.explain) {
         for (const kind of ["ai", "user"]) {
           if (Array.isArray(q.explain[kind]))
-            q.explain[kind] = q.explain[kind].map((t) => fixField(t, base + ` 해설(${kind})`, { skipKorean: true }));
+            q.explain[kind] = q.explain[kind].map((t) => fixField(t, base + ` 해설(${kind})`));
         }
       }
       if (JSON.stringify(q) !== before) { touched = true; changedQ++; }
