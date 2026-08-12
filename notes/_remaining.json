@@ -1,0 +1,562 @@
+[
+ {
+  "id": "11137",
+  "cert": "engineer",
+  "round": "2020-4",
+  "n": 32,
+  "cat": "소프트웨어 개발",
+  "type": "choice"
+ },
+ {
+  "id": "13686",
+  "cert": "engineer",
+  "round": "2021-1",
+  "n": 8,
+  "cat": "소프트웨어 설계",
+  "type": "choice"
+ },
+ {
+  "id": "13718",
+  "cert": "engineer",
+  "round": "2021-1",
+  "n": 40,
+  "cat": "소프트웨어 개발",
+  "type": "choice"
+ },
+ {
+  "id": "13769",
+  "cert": "engineer",
+  "round": "2021-1",
+  "n": 91,
+  "cat": "정보시스템 구축관리",
+  "type": "choice"
+ },
+ {
+  "id": "13823",
+  "cert": "engineer",
+  "round": "2021-2",
+  "n": 46,
+  "cat": "데이터베이스 구축",
+  "type": "choice"
+ },
+ {
+  "id": "13877",
+  "cert": "engineer",
+  "round": "2021-2",
+  "n": 96,
+  "cat": "정보시스템 구축관리",
+  "type": "choice"
+ },
+ {
+  "id": "20105",
+  "cert": "engineer",
+  "round": "2021-3",
+  "n": 23,
+  "cat": "소프트웨어 개발",
+  "type": "choice"
+ },
+ {
+  "id": "20110",
+  "cert": "engineer",
+  "round": "2021-3",
+  "n": 28,
+  "cat": "소프트웨어 개발",
+  "type": "choice"
+ },
+ {
+  "id": "20120",
+  "cert": "engineer",
+  "round": "2021-3",
+  "n": 38,
+  "cat": "소프트웨어 개발",
+  "type": "choice"
+ },
+ {
+  "id": "20125",
+  "cert": "engineer",
+  "round": "2021-3",
+  "n": 43,
+  "cat": "데이터베이스 구축",
+  "type": "choice"
+ },
+ {
+  "id": "20225",
+  "cert": "engineer",
+  "round": "2022-1",
+  "n": 44,
+  "cat": "데이터베이스 구축",
+  "type": "choice"
+ },
+ {
+  "id": "20230",
+  "cert": "engineer",
+  "round": "2022-1",
+  "n": 49,
+  "cat": "데이터베이스 구축",
+  "type": "choice"
+ },
+ {
+  "id": "20238",
+  "cert": "engineer",
+  "round": "2022-1",
+  "n": 57,
+  "cat": "데이터베이스 구축",
+  "type": "choice"
+ },
+ {
+  "id": "20258",
+  "cert": "engineer",
+  "round": "2022-1",
+  "n": 77,
+  "cat": "프로그래밍 언어 활용",
+  "type": "choice"
+ },
+ {
+  "id": "20260",
+  "cert": "engineer",
+  "round": "2022-1",
+  "n": 79,
+  "cat": "프로그래밍 언어 활용",
+  "type": "choice"
+ },
+ {
+  "id": "20348",
+  "cert": "engineer",
+  "round": "2022-2",
+  "n": 67,
+  "cat": "프로그래밍 언어 활용",
+  "type": "choice"
+ },
+ {
+  "id": "11001",
+  "cert": "practical",
+  "round": "2020-1",
+  "n": 16,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "16089",
+  "cert": "practical",
+  "round": "2020-3",
+  "n": 7,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "16105",
+  "cert": "practical",
+  "round": "2020-4",
+  "n": 3,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "16115",
+  "cert": "practical",
+  "round": "2020-4",
+  "n": 13,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "14751",
+  "cert": "practical",
+  "round": "2021-3",
+  "n": 8,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "14756",
+  "cert": "practical",
+  "round": "2021-3",
+  "n": 13,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "25238",
+  "cert": "practical",
+  "round": "2022-1",
+  "n": 12,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "27086",
+  "cert": "practical",
+  "round": "2022-2",
+  "n": 20,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "27217",
+  "cert": "practical",
+  "round": "2022-3",
+  "n": 18,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "48398",
+  "cert": "practical",
+  "round": "2023-1",
+  "n": 5,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "48401",
+  "cert": "practical",
+  "round": "2023-1",
+  "n": 8,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "48404",
+  "cert": "practical",
+  "round": "2023-1",
+  "n": 11,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "48405",
+  "cert": "practical",
+  "round": "2023-1",
+  "n": 12,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "48412",
+  "cert": "practical",
+  "round": "2023-1",
+  "n": 18,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "48413",
+  "cert": "practical",
+  "round": "2023-1",
+  "n": 19,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56451",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 2,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56452",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 3,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56453",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 4,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56531",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 5,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56532",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 7,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56458",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 9,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56459",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 10,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56460",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 11,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56533",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 18,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56468",
+  "cert": "practical",
+  "round": "2023-2",
+  "n": 19,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56470",
+  "cert": "practical",
+  "round": "2023-3",
+  "n": 1,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56534",
+  "cert": "practical",
+  "round": "2023-3",
+  "n": 4,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56535",
+  "cert": "practical",
+  "round": "2023-3",
+  "n": 8,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56536",
+  "cert": "practical",
+  "round": "2023-3",
+  "n": 11,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56482",
+  "cert": "practical",
+  "round": "2023-3",
+  "n": 13,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56484",
+  "cert": "practical",
+  "round": "2023-3",
+  "n": 15,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56485",
+  "cert": "practical",
+  "round": "2023-3",
+  "n": 16,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "56486",
+  "cert": "practical",
+  "round": "2023-3",
+  "n": 17,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "74572",
+  "cert": "practical",
+  "round": "2024-1",
+  "n": 5,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "74580",
+  "cert": "practical",
+  "round": "2024-1",
+  "n": 13,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "74585",
+  "cert": "practical",
+  "round": "2024-1",
+  "n": 18,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "73400",
+  "cert": "practical",
+  "round": "2024-2",
+  "n": 4,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "73402",
+  "cert": "practical",
+  "round": "2024-2",
+  "n": 6,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "73403",
+  "cert": "practical",
+  "round": "2024-2",
+  "n": 7,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "73409",
+  "cert": "practical",
+  "round": "2024-2",
+  "n": 13,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "73412",
+  "cert": "practical",
+  "round": "2024-2",
+  "n": 16,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "74595",
+  "cert": "practical",
+  "round": "2024-3",
+  "n": 6,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "74600",
+  "cert": "practical",
+  "round": "2024-3",
+  "n": 11,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "74604",
+  "cert": "practical",
+  "round": "2024-3",
+  "n": 15,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92303",
+  "cert": "practical",
+  "round": "2025-1",
+  "n": 2,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92308",
+  "cert": "practical",
+  "round": "2025-1",
+  "n": 7,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92315",
+  "cert": "practical",
+  "round": "2025-1",
+  "n": 11,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92318",
+  "cert": "practical",
+  "round": "2025-1",
+  "n": 14,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92319",
+  "cert": "practical",
+  "round": "2025-1",
+  "n": 15,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92326",
+  "cert": "practical",
+  "round": "2025-2",
+  "n": 1,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92337",
+  "cert": "practical",
+  "round": "2025-2",
+  "n": 11,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92338",
+  "cert": "practical",
+  "round": "2025-2",
+  "n": 12,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92339",
+  "cert": "practical",
+  "round": "2025-2",
+  "n": 13,
+  "cat": "실기",
+  "type": "short"
+ },
+ {
+  "id": "92347",
+  "cert": "practical",
+  "round": "2025-2",
+  "n": 20,
+  "cat": "실기",
+  "type": "short"
+ }
+]

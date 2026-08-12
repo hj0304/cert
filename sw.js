@@ -2,7 +2,7 @@
    BUILD는 tools/bump.js가 배포 전에 갱신한다. 캐시 이름에 BUILD가 들어가므로
    새 배포가 뜨면 구버전 캐시는 activate에서 전부 삭제된다. */
 
-const BUILD = "202608120553";
+const BUILD = "202608120746";
 const SHELL_CACHE = "cert-shell-" + BUILD;
 const DATA_CACHE = "cert-data-" + BUILD;
 
