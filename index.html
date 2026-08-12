@@ -9,14 +9,15 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#5b5bd6" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-  <link rel="stylesheet" href="css/style.css?v=202607291106" />
-  <link rel="stylesheet" href="css/skins.css?v=202607291106" />
+  <link rel="stylesheet" href="css/style.css?v=202608120553" />
+  <link rel="stylesheet" href="css/skins.css?v=202608120553" />
 </head>
 <body>
   <div class="wrap">
     <header class="topbar">
       <a class="brand" href="index.html"><span class="logo">🎓</span>CERT<span style="color:var(--ink-3);font-weight:600;font-size:.9rem">문제은행</span></a>
       <div class="actions">
+        <a class="icon-btn" href="notes.html" title="과목별 요약집" style="text-decoration:none">📒</a>
         <a class="icon-btn" href="search.html" title="문제 검색" style="text-decoration:none">🔍</a>
         <button class="icon-btn" id="exportBtn" title="학습 기록 내보내기 (JSON)">⬇️</button>
         <button class="icon-btn" id="importBtn" title="학습 기록 가져오기">⬆️</button>
@@ -167,6 +168,17 @@
           <div class="empty-note">문제를 풀면 과목별 통계가 쌓여요</div>
         </div>
       </div>
+
+      <!-- 요약집 -->
+      <div class="card span-4">
+        <div class="kicker">📒 과목별 요약집</div>
+        <div class="big-num"><span>6</span><span class="unit">과목</span></div>
+        <div class="desc">기출에서 반복 출제되는 것만 추린 정리. 문제 풀기 전 훑고, 틀린 뒤 다시 확인하세요</div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <a class="btn sm ghost" href="notes.html?cert=engineer">필기 5과목</a>
+          <a class="btn sm ghost" href="notes.html?cert=practical">실기</a>
+        </div>
+      </div>
     </main>
 
     <footer class="foot">
@@ -200,7 +212,7 @@
     </div>
   </div>
 
-  <script src="js/common.js?v=202607291106"></script>
-  <script src="js/home.js?v=202607291106"></script>
+  <script src="js/common.js?v=202608120553"></script>
+  <script src="js/home.js?v=202608120553"></script>
 </body>
 </html>

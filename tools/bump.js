@@ -7,7 +7,7 @@ const ROOT = path.join(__dirname, "..");
 
 const v = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 12); // YYYYMMDDHHMM
 
-const HTML = ["index.html", "exam.html", "search.html"];
+const HTML = ["index.html", "exam.html", "search.html", "notes.html"];
 const BUILD_CONST = [path.join("js", "common.js"), "sw.js"];
 
 for (const f of HTML) {

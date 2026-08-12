@@ -389,6 +389,29 @@ a.card { text-decoration: none; color: inherit; display: block; }
 .explain-item td, .explain-item th { border: 1px solid var(--line); padding: 5px 9px; font-size: 0.85rem; }
 .explain-tag { font-size: 0.76rem; font-weight: 800; color: var(--ink-3); margin-bottom: 8px; letter-spacing: 0.02em; }
 
+/* 직접 작성한 해설 — 가장 먼저 눈에 들어오게 */
+.explain-item.mine {
+  background: var(--accent-soft); border-color: transparent;
+  border-left: 3px solid var(--accent); color: var(--ink);
+}
+.explain-item.mine .explain-tag { color: var(--accent-ink); }
+.explain-item.mine b { color: var(--ink); }
+.explain-item.mine code {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 5px;
+  padding: 1px 5px; font-family: ui-monospace, Consolas, monospace; font-size: .87em;
+}
+.explain-item.mine pre {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 11px 13px; margin: 9px 0; overflow-x: auto;
+  font-family: ui-monospace, Consolas, monospace; font-size: .82rem; line-height: 1.6;
+}
+.explain-item.mine th { background: var(--surface); }
+/* 저장된 정답이 의심스러울 때 붙이는 표시 */
+.explain-item.mine .flag {
+  display: block; background: var(--red-soft); border-left: 3px solid var(--red);
+  border-radius: 0 8px 8px 0; padding: 8px 12px; margin: 10px 0 0; font-size: .86rem;
+}
+
 /* AI 해설 신뢰도 경고 */
 .explain-warnbox {
   background: var(--amber-soft); border: 1.5px solid var(--amber);
@@ -666,6 +689,83 @@ pre.code-block .code-lang {
 
 .bm-active { color: var(--amber) !important; }
 
+/* ---------- 과목별 요약집 ---------- */
+.notes-layout { display: grid; grid-template-columns: 232px 1fr; gap: 22px; align-items: start; }
+
+.notes-nav {
+  position: sticky; top: 18px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 12px; box-shadow: var(--shadow);
+  max-height: calc(100vh - 40px); overflow-y: auto;
+}
+.nn-group {
+  font-size: .7rem; font-weight: 800; letter-spacing: .08em; color: var(--ink-3);
+  text-transform: uppercase; padding: 8px 8px 5px;
+}
+.nn-group:not(:first-child) { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+.nn-subject {
+  display: flex; align-items: center; gap: 6px; width: 100%; text-align: left;
+  padding: 8px 9px; border: 0; border-radius: 9px; background: transparent;
+  color: var(--ink-2); font: inherit; font-size: .87rem; font-weight: 600; cursor: pointer;
+}
+.nn-subject:hover { background: var(--surface-2); color: var(--ink); }
+.nn-subject.on { background: var(--accent-soft); color: var(--accent-ink); }
+.nn-count { margin-left: auto; font-size: .72rem; color: var(--ink-3); font-weight: 700; }
+.nn-subject.on .nn-count { color: var(--accent-ink); }
+.nn-sec {
+  display: block; padding: 6px 9px; border-radius: 8px; font-size: .82rem;
+  color: var(--ink-3); text-decoration: none; line-height: 1.45;
+}
+.nn-sec:hover { background: var(--surface-2); color: var(--ink); }
+
+.notes-body { min-width: 0; }
+.notes-intro {
+  background: var(--accent-soft); border-radius: var(--radius-sm); padding: 16px 20px; margin-bottom: 18px;
+}
+.notes-intro h2 { font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; color: var(--accent-ink); }
+.notes-intro p { margin-top: 5px; font-size: .89rem; color: var(--ink-2); line-height: 1.65; }
+
+.note-sec {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 18px 22px; margin-bottom: 14px; box-shadow: var(--shadow); scroll-margin-top: 16px;
+}
+.note-sec h3 {
+  font-size: 1.02rem; font-weight: 800; letter-spacing: -.01em;
+  padding-bottom: 10px; border-bottom: 1px solid var(--line); margin-bottom: 12px;
+}
+.note-body { font-size: .89rem; line-height: 1.75; color: var(--ink-2); }
+.note-body p { margin: 9px 0; }
+.note-body b { color: var(--ink); font-weight: 700; }
+.note-body ul, .note-body ol { margin: 9px 0 9px 20px; }
+.note-body li { margin: 4px 0; }
+.note-body code {
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 5px;
+  padding: 1px 5px; font-family: ui-monospace, Consolas, monospace; font-size: .86em; color: var(--ink);
+}
+.note-body pre {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 14px; margin: 11px 0; overflow-x: auto;
+  font-family: ui-monospace, Consolas, monospace; font-size: .82rem; line-height: 1.6; color: var(--ink);
+}
+.note-body table {
+  width: 100%; border-collapse: collapse; margin: 11px 0; font-size: .84rem;
+  display: block; overflow-x: auto;
+}
+.note-body th, .note-body td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; }
+.note-body th { background: var(--surface-2); font-weight: 700; color: var(--ink); white-space: nowrap; }
+.note-body .tip {
+  background: var(--amber-soft); border-left: 3px solid var(--amber);
+  border-radius: 0 8px 8px 0; padding: 9px 13px; margin: 11px 0; font-size: .85rem;
+}
+
+@media (max-width: 860px) {
+  .notes-layout { grid-template-columns: 1fr; }
+  .notes-nav { position: static; max-height: none; }
+  .nn-sec { display: inline-block; margin: 2px 3px 2px 0; background: var(--surface-2); }
+}
+
 @media print {
   .side-panel, .topbar, .q-nav, .foot { display: none !important; }
+  .notes-nav, .exam-head .seg { display: none !important; }
+  .notes-layout { grid-template-columns: 1fr; }
+  .note-sec { break-inside: avoid; box-shadow: none; }
 }

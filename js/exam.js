@@ -473,10 +473,12 @@
     const box = $("explainBox"), body = $("explainBody");
     const revealed = Q.id in graded || peeked[Q.id] || (submitted && Q.type === "choice");
     const ex = Q.explain || {};
-    const hasContent = (ex.user && ex.user.length) || (ex.ai && ex.ai.length);
+    const hasContent = ex.mine || (ex.user && ex.user.length) || (ex.ai && ex.ai.length);
     if (!revealed || !hasContent) { box.style.display = "none"; body.style.display = "none"; return; }
     box.style.display = "";
     let html = "";
+    // 직접 쓴 해설을 맨 위에. 기존 AI 해설과 달리 정답을 먼저 보고 꿰맞춘 글이 아니다.
+    if (ex.mine) html += `<div class="explain-item mine"><div class="explain-tag">✍️ 해설</div>${ex.mine}</div>`;
     (ex.user || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">📝 등록자 해설</div>${c}</div>`; });
     (ex.ai || []).forEach((c) => { html += `<div class="explain-item"><div class="explain-tag">🤖 AI 해설 <span class="explain-warn">— 부정확할 수 있어요</span></div>${c}</div>`; });
     // AI 해설 신뢰도 경고 (tools/audit-explanations.js가 기록한 플래그)

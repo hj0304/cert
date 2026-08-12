@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>과목별 요약집 — CERT 문제은행</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#5b5bd6" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="css/style.css?v=202608120553" />
+  <link rel="stylesheet" href="css/skins.css?v=202608120553" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a class="brand" href="index.html"><span class="logo">🎓</span>CERT<span style="color:var(--ink-3);font-weight:600;font-size:.9rem">문제은행</span></a>
+      <div class="actions">
+        <a class="icon-btn" href="search.html" title="문제 검색" style="text-decoration:none">🔍</a>
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="다크모드 전환">🌙</button>
+      </div>
+    </header>
+
+    <div class="exam-head">
+      <div class="title">
+        <a class="btn ghost sm" href="index.html">← 홈</a>
+        <h1>📒 과목별 요약집</h1>
+        <span class="pill accent">정보처리기사</span>
+      </div>
+      <div class="seg" id="certSeg">
+        <button data-cert="engineer" class="on">필기</button>
+        <button data-cert="practical">실기</button>
+      </div>
+    </div>
+
+    <p style="color:var(--ink-2);font-size:.92rem;margin-bottom:14px">
+      기출 1,175문항에서 반복 출제되는 것만 추렸어요. <b>★</b> 표시는 특히 자주 나오는 단원입니다.
+    </p>
+
+    <div class="notes-layout">
+      <aside class="notes-nav" id="notesNav"></aside>
+      <main class="notes-body" id="notesBody"></main>
+    </div>
+  </div>
+
+  <script src="js/common.js?v=202608120553"></script>
+  <script src="data/notes.js?v=202608120553"></script>
+  <script src="js/notes.js?v=202608120553"></script>
+</body>
+</html>
