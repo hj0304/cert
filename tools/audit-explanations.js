@@ -93,6 +93,14 @@ function audit(q) {
   // 6) 문장이 끊긴 채 끝남
   if (ai.length >= 45 && !/[.!?…"'”’)\]}다요음임함됨줌]$/.test(ai)) flags.push("truncated");
 
+  // 7) 한국어가 아닌 문자가 섞임.
+  //    해설을 만든 AI가 문장 중간에 다른 언어로 코드 스위칭한 흔적이다
+  //    ("결함을 早期에 발견", "개발过程를 개선", "복잡한 hệ thống"...).
+  //    tools/fix-foreign.js 로 일괄 교정했지만, 새 회차를 수집하면 다시 생길 수 있어
+  //    감사 항목으로 남겨 둔다. 라틴 확장(터키어·체코어 등)까지 포함해야 한다.
+  if (/[一-鿿㐀-䶿぀-ヿЀ-ӿḀ-ỿĀ-ɏ]/.test(ai))
+    flags.push("foreign");
+
   return [...new Set(flags)];
 }
 
@@ -104,6 +112,7 @@ const REASON_LABEL = {
   lowrate: "전국 정답률 40% 미만 — 정답·해설 교차 확인 권장",
   tooshort: "설명이 너무 짧음",
   truncated: "문장이 중간에 끊김",
+  foreign: "한국어가 아닌 문자가 섞임 (AI 코드 스위칭)",
 };
 
 const tally = {};
