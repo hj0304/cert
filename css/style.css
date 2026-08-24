@@ -328,6 +328,63 @@ a.card { text-decoration: none; color: inherit; display: block; }
   color: var(--ink-2); margin-top: 12px; line-height: 1.7;
 }
 
+/* ============================================================
+   문항 본문 구조 요소 — 빅분기 데이터의 <보기> 상자·그림·표 마크업
+   ============================================================ */
+/* <보기> 상자: 발문(굵게)과 지문을 시각적으로 분리 */
+.q-subject .q-spec, .q-extra .q-spec {
+  margin-top: 14px;
+  padding: 16px 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.97rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  line-height: 1.75;
+  white-space: normal;
+}
+.q-spec__label {
+  display: block;
+  width: fit-content;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--accent-ink);
+  letter-spacing: 0.08em;
+  padding-left: 8px;
+  border-left: 3px solid var(--accent);
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+.q-spec p { margin: 0 0 8px; }
+.q-spec p:last-child { margin-bottom: 0; }
+.q-spec ul, .q-spec ol { margin: 0; padding-left: 20px; }
+.q-spec li { margin: 4px 0; }
+.q-spec b, .q-spec strong { color: var(--ink); }
+
+/* 그림(도표) — SVG는 currentColor 기반이라 다크모드 자동 대응 */
+.q-fig { margin-top: 14px; text-align: center; }
+.q-fig__svg { max-width: 100%; height: auto; }
+.q-spec .q-fig { margin-top: 6px; }
+
+/* 문항 속 표 (혼동행렬·통계표 등) */
+.q-subject table, .q-extra table {
+  border-collapse: collapse; margin: 12px 0 4px; max-width: 100%;
+  font-size: 0.9rem; font-weight: 500; line-height: 1.5;
+}
+.q-subject table.is-center, .q-extra table.is-center { margin-left: auto; margin-right: auto; }
+.q-subject th, .q-subject td, .q-extra th, .q-extra td {
+  border: 1px solid var(--line); padding: 7px 12px; text-align: center;
+}
+.q-subject th, .q-extra th { background: var(--surface-2); font-weight: 700; }
+/* 보기 상자 안의 표는 바탕과 구분되도록 셀을 카드색으로 */
+.q-spec table td { background: var(--surface); }
+.q-tbl-title { margin: 12px 0 2px; font-size: 0.84rem; font-weight: 700; color: var(--ink-3); text-align: center; }
+/* 혼동행렬 모서리 칸: 행/열 라벨을 위아래로 배치 */
+th.is-corner .col, th.is-corner .row { display: block; font-size: 0.78rem; color: var(--ink-3); }
+th.is-corner .col { text-align: right; }
+th.is-corner .row { text-align: left; }
+
 .choices { list-style: none; margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
 .choice {
   display: flex; align-items: flex-start; gap: 12px;
