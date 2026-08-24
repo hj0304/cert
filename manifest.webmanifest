@@ -1,7 +1,7 @@
 {
   "name": "CERT — 나만의 자격증 문제은행",
   "short_name": "CERT",
-  "description": "ADsP·정보처리기사 기출 문제은행. 광고 없이, 깔끔하게.",
+  "description": "ADsP·정보처리기사·빅데이터분석기사 기출 문제은행. 광고 없이, 깔끔하게.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

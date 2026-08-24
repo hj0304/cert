@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 
-const CERTS = ["adsp", "engineer", "practical"];
+const CERTS = ["adsp", "engineer", "practical", "bigdata"];
 
 function stripToText(html) {
   return String(html || "")

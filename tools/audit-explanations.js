@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const WRITE = process.argv.includes("--write");
-const CERTS = ["adsp", "engineer", "practical"];
+const CERTS = ["adsp", "engineer", "practical", "bigdata"];
 
 const CIRCLED = { "①": 1, "②": 2, "③": 3, "④": 4, "⑤": 5 };
 

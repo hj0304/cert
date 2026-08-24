@@ -113,7 +113,7 @@
         const cert = CERTS[item.c];
         return `<a class="search-hit" href="exam.html?cert=${item.c}&round=${item.r}&mode=practice#q${item.n}">
           <div class="hit-meta">
-            <span class="pill ${item.c === "adsp" ? "accent" : item.c === "engineer" ? "teal" : "amber"}">${cert.name}</span>
+            <span class="pill ${item.c === "adsp" ? "accent" : item.c === "engineer" ? "teal" : item.c === "bigdata" ? "green" : "amber"}">${cert.name}</span>
             <span class="hit-round">${roundLabel(item.r, item.c)} · ${item.n}번</span>
             <span class="hit-cat">${esc(item.s)}</span>
             ${item.y === "s" ? '<span class="pill muted">단답형</span>' : ""}

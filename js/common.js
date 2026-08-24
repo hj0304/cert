@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202608130318";
+const BUILD = "202608240241";
 
 const CERTS = {
   adsp: {
@@ -42,6 +42,28 @@ const CERTS = {
     subjects: ["소프트웨어 설계", "소프트웨어 개발", "데이터베이스 구축", "프로그래밍 언어 활용", "정보시스템 구축관리"],
     total: 799,
     timeLimit: 150, // 실제 시험: 과목당 20문항·30분 × 5과목 = 150분
+    ready: true,
+  },
+  bigdata: {
+    id: "bigdata",
+    name: "빅분기",
+    fullName: "빅데이터분석기사 필기",
+    icon: "📈",
+    passScore: 60,
+    failScore: 40,
+    // 제1회는 코로나로 취소되어 제2회(2021)부터 시행. 복원 기출 전 회차.
+    rounds: [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2],
+    roundInfo: {
+      12: { count: 80, label: "12회 (2026)" }, 11: { count: 80, label: "11회 (2025)" },
+      10: { count: 80, label: "10회 (2025)" }, 9: { count: 80, label: "9회 (2024)" },
+      8: { count: 80, label: "8회 (2024)" }, 7: { count: 80, label: "7회 (2023)" },
+      6: { count: 80, label: "6회 (2023)" }, 5: { count: 80, label: "5회 (2022)" },
+      4: { count: 80, label: "4회 (2022)" }, 3: { count: 80, label: "3회 (2021)" },
+      2: { count: 80, label: "2회 (2021)" },
+    },
+    subjects: ["빅데이터 분석 기획", "빅데이터 탐색", "빅데이터 모델링", "빅데이터 결과 해석"],
+    total: 880,
+    timeLimit: 120, // 실제 시험: 객관식 80문항 120분
     ready: true,
   },
   practical: {
@@ -89,6 +111,11 @@ const EXAM_SCHEDULE = {
     { round: "2026년 1회", date: "2026-04-18", end: "2026-05-06" },
     { round: "2026년 2회", date: "2026-07-18", end: "2026-08-05" },
     { round: "2026년 3회", date: "2026-10-24", end: "2026-11-13" },
+  ],
+  // 빅분기 필기는 지정된 토요일 단일 시행 (출처: dataq.or.kr 2026 시험일정)
+  bigdata: [
+    { round: "제12회 필기", date: "2026-04-04" },
+    { round: "제13회 필기", date: "2026-09-05" },
   ],
 };
 

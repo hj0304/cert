@@ -134,6 +134,7 @@
   const adspIds = renderCertCard(CERTS.adsp, "adspSolved", "adspProgress", "adspChips");
   const engIds = renderCertCard(CERTS.engineer, "engSolved", "engProgress", "engChips");
   const pracIds = renderCertCard(CERTS.practical, "pracSolved", "pracProgress", "pracChips");
+  const bigIds = renderCertCard(CERTS.bigdata, "bigSolved", "bigProgress", "bigChips");
 
   /* ---- 오답노트 미리보기 ---- */
   const wrongRows = document.getElementById("wrongRows");
@@ -151,7 +152,7 @@
   /* ---- 과목별 정답률 (자격증 통합) ---- */
   const subjRows = document.getElementById("subjectRows");
   const rowsHtml = [];
-  [["adsp", adspIds], ["engineer", engIds], ["practical", pracIds]].forEach(([cid, ids]) => {
+  [["adsp", adspIds], ["engineer", engIds], ["practical", pracIds], ["bigdata", bigIds]].forEach(([cid, ids]) => {
     const cert = CERTS[cid];
     const bySubject = {};
     ids.forEach((id) => {
@@ -316,7 +317,8 @@
   const dueAdsp = getDueIds("adsp");
   const dueEng = getDueIds("engineer");
   const duePrac = getDueIds("practical");
-  document.getElementById("dueNum").textContent = dueAdsp.length + dueEng.length + duePrac.length;
+  const dueBig = getDueIds("bigdata");
+  document.getElementById("dueNum").textContent = dueAdsp.length + dueEng.length + duePrac.length + dueBig.length;
   if (dueAdsp.length) {
     document.getElementById("dueAdsp").style.display = "";
     document.getElementById("dueAdspN").textContent = dueAdsp.length;
@@ -329,12 +331,16 @@
     document.getElementById("duePrac").style.display = "";
     document.getElementById("duePracN").textContent = duePrac.length;
   }
-  if (dueAdsp.length || dueEng.length || duePrac.length) document.getElementById("dueEmpty").style.display = "none";
+  if (dueBig.length) {
+    document.getElementById("dueBig").style.display = "";
+    document.getElementById("dueBigN").textContent = dueBig.length;
+  }
+  if (dueAdsp.length || dueEng.length || duePrac.length || dueBig.length) document.getElementById("dueEmpty").style.display = "none";
 
   /* ---- 합격 예측 ---- */
   const predictRows = document.getElementById("predictRows");
   const predictHtml = [];
-  ["adsp", "engineer", "practical"].forEach((cid) => {
+  ["adsp", "engineer", "practical", "bigdata"].forEach((cid) => {
     const cert = CERTS[cid];
     const perf = subjectPerformance(cid);
     const attempted = Object.values(perf).reduce((n, o) => n + o.a, 0);
@@ -376,12 +382,12 @@
   }
 
   /* 복습 대기가 있으면 히어로에 CTA 추가 */
-  const totalDue = dueAdsp.length + dueEng.length + duePrac.length;
+  const totalDue = dueAdsp.length + dueEng.length + duePrac.length + dueBig.length;
   if (totalDue) {
     const foot = document.querySelector(".hero-foot");
     const a = document.createElement("a");
     a.className = "btn ghost-hero";
-    const counts = [["adsp", dueAdsp.length], ["engineer", dueEng.length], ["practical", duePrac.length]];
+    const counts = [["adsp", dueAdsp.length], ["engineer", dueEng.length], ["practical", duePrac.length], ["bigdata", dueBig.length]];
     const target = counts.sort((x, y) => y[1] - x[1])[0][0];
     a.href = `exam.html?cert=${target}&mode=review`;
     a.textContent = `🌱 오늘의 복습 ${totalDue}문제`;

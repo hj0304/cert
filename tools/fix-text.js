@@ -22,7 +22,7 @@ const path = require("path");
 
 const DATA = path.join(__dirname, "..", "data");
 const WRITE = process.argv.includes("--write");
-const CERTS = ["adsp", "engineer", "practical"];
+const CERTS = ["adsp", "engineer", "practical", "bigdata"];
 
 /* ---------------- 통계 ---------------- */
 const stat = {};

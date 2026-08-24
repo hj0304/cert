@@ -19,7 +19,7 @@ const path = require("path");
 
 const DATA = path.join(__dirname, "..", "data");
 const WRITE = process.argv.includes("--write");
-const CERTS = ["adsp", "engineer", "practical"];
+const CERTS = ["adsp", "engineer", "practical", "bigdata"];
 
 /* 외국 문자 판정.
    한자·가나·키릴·베트남어뿐 아니라 라틴 확장(U+0100~U+024F)도 넣어야 한다.

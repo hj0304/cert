@@ -14,7 +14,7 @@ const fs = require("fs");
 const path = require("path");
 
 const DATA = path.join(__dirname, "..", "data");
-const CERTS = ["engineer", "practical"]; // 정보처리기사만 (ADsP 제외)
+const CERTS = ["engineer", "practical", "bigdata"]; // 직접 해설 대상 (ADsP 제외)
 
 const inFile = process.argv[2];
 const WRITE = process.argv.includes("--write");
