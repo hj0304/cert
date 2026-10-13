@@ -380,6 +380,11 @@ a.card { text-decoration: none; color: inherit; display: block; }
 /* 보기 상자 안의 표는 바탕과 구분되도록 셀을 카드색으로 */
 .q-spec table td { background: var(--surface); }
 .q-tbl-title { margin: 12px 0 2px; font-size: 0.84rem; font-weight: 700; color: var(--ink-3); text-align: center; }
+/* 표를 좌우로 나란히 (실기 SQL 문항의 두 테이블) — 좁은 화면에서는 자동 줄바꿈 */
+.tables-row { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: flex-start; }
+.tables-row > * { min-width: 0; }
+.tables-row > pre.contents { flex-basis: 100%; }  /* 코드는 표 옆이 아니라 아래 한 줄 전체로 */
+.q-tbl.is-fit { width: auto; }
 /* 혼동행렬 모서리 칸: 행/열 라벨을 위아래로 배치 */
 th.is-corner .col, th.is-corner .row { display: block; font-size: 0.78rem; color: var(--ink-3); }
 th.is-corner .col { text-align: right; }
