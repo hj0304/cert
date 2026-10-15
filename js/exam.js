@@ -325,15 +325,18 @@
       list.style.display = "none";
       list.innerHTML = "";
       shortBox.style.display = "";
-      $("shortInput").value = (store.get("shortDraft." + Q.id, "")) || "";
-      const revealed = Q.id in graded || (!isExamMode && $("shortReveal").dataset.qid === String(Q.id) && $("shortReveal").style.display !== "none");
+      renderShortInputs(Q);
       $("shortReveal").style.display = "none";
       $("selfGrade").style.display = "none";
+      $("shortOverride").style.display = "none";
       $("shortShowBtn").style.display = "";
+      $("shortCheckBtn").style.display = (isAutoGraded(Q) && !(Q.id in graded) && !(isExamMode && !submitted)) ? "" : "none";
       if (Q.id in graded) {
         showShortAnswer(false);
+        paintShortResult(Q);
         fb.className = "q-feedback " + (graded[Q.id] ? "ok" : "no");
-        fb.textContent = graded[Q.id] ? "맞았어요! 잘하고 있어요 ✓" : "틀렸어요 — 정답: " + Q.shortAnswer;
+        fb.textContent = graded[Q.id] ? "맞았어요! 잘하고 있어요 ✓" : "틀렸어요 — 정답: " + plainAnswer(Q);
+        if (!graded[Q.id] && isAutoGraded(Q)) $("shortOverride").style.display = "";
       }
     }
 
@@ -499,13 +502,133 @@
     if (window.highlightCodeIn) highlightCodeIn(body);
   }
 
+  /* ============ 단답형 자동 채점 ============
+     tools/build-accept.js 가 각 문항에 grade 를 심어 둔다.
+       {t:"one",  a:[허용표기...]}                 한 칸
+       {t:"multi", l:[라벨...], a:[[허용표기...]...]} 라벨별 칸
+       {t:"self"}                                  '~설명하시오' 서술형 → 자가채점
+     normAnswer 는 build-accept.js 의 norm 과 글자 단위로 같아야 한다. */
+  function normAnswer(s) {
+    return String(s || "")
+      .toLowerCase()
+      .replace(/[“”"'‘’`]/g, "")
+      .replace(/[,，、·]/g, " ")
+      .replace(/\s+/g, "")
+      .replace(/[;.]+$/, "");
+  }
+  function isAutoGraded(Q) { return !!(Q.grade && Q.grade.t !== "self"); }
+  function plainAnswer(Q) {
+    return String(Q.shortAnswer || "").replace(/<br\s*\/?>/gi, " / ").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  }
+
+  /* 입력칸 그리기 — multi 는 라벨별 칸, 나머지는 textarea. 임시 저장(draft)도 함께 복원 */
+  function renderShortInputs(Q) {
+    const ta = $("shortInput"), multi = $("shortMulti");
+    const g = Q.grade || {};
+    ta.className = "";
+    multi.innerHTML = "";
+    if (g.t === "multi") {
+      ta.style.display = "none";
+      multi.style.display = "";
+      const draft = store.get("shortDraft." + Q.id, []);
+      const vals = Array.isArray(draft) ? draft : [];
+      multi.innerHTML = g.l.map((lbl, i) =>
+        `<label class="blank"><span class="lbl">${esc(lbl)}</span><input type="text" data-i="${i}" value="${esc(vals[i] || "")}" autocomplete="off" spellcheck="false"></label>`
+      ).join("");
+      multi.querySelectorAll("input").forEach((inp) => {
+        inp.addEventListener("input", () => {
+          const arr = [...multi.querySelectorAll("input")].map((x) => x.value);
+          store.set("shortDraft." + Q.id, arr);
+        });
+      });
+    } else {
+      multi.style.display = "none";
+      ta.style.display = "";
+      const draft = store.get("shortDraft." + Q.id, "");
+      ta.value = typeof draft === "string" ? draft : "";
+      ta.placeholder = isAutoGraded(Q) ? "답을 적고 Enter (자동 채점)" : "답을 적어보세요 (자가 채점)";
+    }
+  }
+
+  function readShortInput(Q) {
+    if (Q.grade && Q.grade.t === "multi") return [...$("shortMulti").querySelectorAll("input")].map((x) => x.value);
+    return $("shortInput").value;
+  }
+  function hasShortInput(Q) {
+    const v = readShortInput(Q);
+    return Array.isArray(v) ? v.some((x) => x.trim()) : !!v.trim();
+  }
+
+  /* 허용 표기와 대조. multi 는 칸마다 따로 보고 전부 맞아야 정답 */
+  function gradeShort(Q, input) {
+    const g = Q.grade;
+    if (g.t === "multi") {
+      const per = g.a.map((acc, i) => acc.includes(normAnswer((input || [])[i])));
+      return { ok: per.every(Boolean), per };
+    }
+    const ok = g.a.includes(normAnswer(input));
+    return { ok, per: [ok] };
+  }
+
+  /* 채점 결과를 입력칸 색으로 */
+  function paintShortResult(Q) {
+    if (!isAutoGraded(Q) || !(Q.id in graded)) return;
+    const r = gradeShort(Q, readShortInput(Q));
+    if (Q.grade.t === "multi") {
+      $("shortMulti").querySelectorAll(".blank").forEach((el, i) => { el.classList.toggle("ok", r.per[i]); el.classList.toggle("no", !r.per[i]); });
+    } else {
+      $("shortInput").className = graded[Q.id] ? "ok" : "no";
+    }
+  }
+
+  function autoCheckShort() {
+    const Q = q();
+    if (!isAutoGraded(Q) || Q.id in graded) return;
+    if (isExamMode && !submitted) { toast("실전 모드에선 제출할 때 한꺼번에 채점돼요"); return; }
+    if (!hasShortInput(Q)) { toast("답을 먼저 적어주세요"); return; }
+    const { ok } = gradeShort(Q, readShortInput(Q));
+    graded[Q.id] = ok;
+    delete peeked[Q.id];
+    recordResult(String(Q.id), ok, meta(Q));
+    $("shortCheckBtn").style.display = "none";
+    showShortAnswer(false);
+    paintShortResult(Q);
+    const fb = $("qFeedback");
+    fb.className = "q-feedback " + (ok ? "ok" : "no");
+    fb.textContent = ok ? "정답이에요! ✓" : "틀렸어요 — 정답: " + plainAnswer(Q);
+    if (!ok) $("shortOverride").style.display = "";
+    renderExplain();
+    renderPalette();
+  }
+
+  /* 자동 채점이 놓친 표기 — 사람이 최종 판단해 정답으로 뒤집는다 */
+  function overrideShort() {
+    const Q = q();
+    if (!(Q.id in graded) || graded[Q.id]) return;
+    graded[Q.id] = true;
+    amendResult(String(Q.id), true);
+    $("shortOverride").style.display = "none";
+    paintShortResult(Q);
+    const fb = $("qFeedback");
+    fb.className = "q-feedback ok";
+    fb.textContent = "정답으로 바꿨어요 ✓ (표기만 다른 답)";
+    renderExplain();
+    renderPalette();
+  }
+
   function showShortAnswer(focusGrade = true) {
     const Q = q();
     const rev = $("shortReveal");
-    rev.textContent = "정답: " + (Q.shortAnswer || "(등록된 정답 없음)");
+    rev.textContent = "정답: " + (plainAnswer(Q) || "(등록된 정답 없음)");
+    if (isAutoGraded(Q) && !(Q.id in graded)) {
+      const note = document.createElement("small");
+      note.textContent = "자동 채점 문항이라 정답을 먼저 보면 기록에 남지 않아요. 아래 버튼으로 직접 채점할 수 있어요.";
+      rev.appendChild(note);
+    }
     rev.style.display = "";
     rev.dataset.qid = Q.id;
     $("shortShowBtn").style.display = "none";
+    $("shortCheckBtn").style.display = "none";
     if (!(Q.id in graded) && focusGrade) $("selfGrade").style.display = "flex";
     peeked[Q.id] = peeked[Q.id] || !(Q.id in graded);
     renderExplain();
@@ -532,7 +655,8 @@
       const unanswered = questions.filter((Q) => {
         if (Q.id in graded) return false;
         if (Q.type === "choice") return !(sel[Q.id] && sel[Q.id].size);
-        return !store.get("shortDraft." + Q.id, "") && !(Q.id in graded);
+        const d = store.get("shortDraft." + Q.id, "");
+        return Array.isArray(d) ? !d.some((x) => x && x.trim()) : !String(d || "").trim();
       }).length;
       if (unanswered && !confirm(`안 푼 문제가 ${unanswered}개 있어요. 그래도 제출할까요?`)) return;
     }
@@ -549,8 +673,13 @@
         const correct = !!mine && mine === ans;
         graded[Q.id] = correct;
         recordResult(String(Q.id), correct, meta(Q));
+      } else if (isAutoGraded(Q)) {
+        // 허용 표기가 있는 단답형은 적어둔 답으로 바로 채점. 서술형(self)만 자가채점으로 남는다
+        const d = store.get("shortDraft." + Q.id, Q.grade.t === "multi" ? [] : "");
+        const correct = gradeShort(Q, d).ok;
+        graded[Q.id] = correct;
+        recordResult(String(Q.id), correct, meta(Q));
       }
-      // 단답형은 자가채점 필요 — 결과에서 안내
     });
 
     renderQuestion();
@@ -589,7 +718,7 @@
       .join("");
 
     $("resultNote").textContent =
-      (shortsPending ? `단답형 ${shortsPending}문제는 아직 자가채점 전이에요. 닫고 정답을 확인한 뒤 직접 채점하면 점수에 반영돼요. ` : "") +
+      (shortsPending ? `서술형 ${shortsPending}문제는 자동 채점이 안 돼요. 닫고 정답을 확인한 뒤 직접 채점하면 점수에 반영돼요. ` : "") +
       `합격 ${cert.passScore}점 이상` + (cert.failScore ? ` · 과목별 ${cert.failScore}% 미만 과락 기준.` : " 기준.");
     $("resultModal").classList.add("show");
   }
@@ -716,8 +845,17 @@
   });
   $("selfOk").addEventListener("click", () => selfGradeShort(true));
   $("selfNo").addEventListener("click", () => selfGradeShort(false));
+  $("shortCheckBtn").addEventListener("click", autoCheckShort);
+  $("shortOverride").addEventListener("click", overrideShort);
   $("shortInput").addEventListener("input", (e) => {
     store.set("shortDraft." + q().id, e.target.value);
+  });
+  // Enter 로 채점 (textarea 는 Shift+Enter 가 줄바꿈). 자동 채점 문항에서만.
+  $("shortBox").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+    const Q = q();
+    if (!Q || !isAutoGraded(Q)) return;
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") { e.preventDefault(); autoCheckShort(); }
   });
 
   $("fontUp").addEventListener("click", () => { fontScale = Math.min(1.3, fontScale + 0.1); applyFont(); });

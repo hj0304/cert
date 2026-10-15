@@ -1,7 +1,7 @@
 /* 공용: 테마, 저장소, 자격증 레지스트리 */
 
 /* 배포 시 갱신되는 캐시 버스팅 버전 (index/exam.html의 ?v= 와 함께 관리) */
-const BUILD = "202610130534";
+const BUILD = "202610150032";
 
 const CERTS = {
   adsp: {
@@ -481,6 +481,27 @@ function setQIndex(ix) { store.set("qindex", ix); }
 /* 간격 반복(Spaced Repetition) — 라이트너 방식.
    맞히면 다음 복습 간격이 늘어나고(1→3→7→21일), 틀리면 1일로 리셋. */
 const SRS_INTERVALS = [1, 3, 7, 21]; // 일 단위
+
+/* 이미 기록한 결과를 뒤집는다 — 자동 채점이 '틀림'이라 했지만 표기만 다른 정답이었을 때.
+   시도 횟수(a)는 그대로 두고 오답 수(w)만 되돌린 뒤, 맞힌 것으로 복습 간격을 다시 잡는다. */
+function amendResult(qid, correct) {
+  const stats = getStats();
+  const s = stats[qid];
+  if (!s) return;
+  const was = s.last === "o";
+  if (was === correct) return;
+  s.w = Math.max(0, s.w + (correct ? -1 : 1));
+  s.last = correct ? "o" : "x";
+  s.iv = correct ? 1 : 0;
+  s.due = Date.now() + SRS_INTERVALS[s.iv] * 86400000;
+  stats[qid] = s;
+  setStats(stats);
+  const wrong = getWrongNote();
+  const i = wrong.indexOf(qid);
+  if (correct && i >= 0) { wrong.splice(i, 1); setWrongNote(wrong); }
+  if (!correct && i < 0) { wrong.push(qid); setWrongNote(wrong); }
+  if (store.get("notify", false)) syncReviewToIDB();
+}
 
 function recordResult(qid, correct, meta) {
   const stats = getStats();

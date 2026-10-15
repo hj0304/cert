@@ -8,8 +8,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#5b5bd6" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-  <link rel="stylesheet" href="css/style.css?v=202610130534" />
-  <link rel="stylesheet" href="css/skins.css?v=202610130534" />
+  <link rel="stylesheet" href="css/style.css?v=202610150032" />
+  <link rel="stylesheet" href="css/skins.css?v=202610150032" />
 </head>
 <body>
   <div class="wrap">
@@ -83,14 +83,19 @@
             <ul class="choices" id="choiceList"></ul>
 
             <div class="short-box" id="shortBox" style="display:none">
-              <textarea id="shortInput" placeholder="답을 적어보세요 (자가 채점)"></textarea>
+              <!-- 단일 답: 한 칸 / 다중 빈칸: 라벨별 칸 (exam.js가 grade 형태에 따라 둘 중 하나를 보여준다) -->
+              <textarea id="shortInput" placeholder="답을 적어보세요"></textarea>
+              <div class="short-multi" id="shortMulti" style="display:none"></div>
               <div class="short-answer-reveal" id="shortReveal" style="display:none"></div>
               <div class="self-grade" id="selfGrade" style="display:none">
                 <button class="btn sm primary" id="selfOk">맞았어요 ✓</button>
                 <button class="btn sm ghost" id="selfNo">틀렸어요 ✗</button>
               </div>
-              <div style="margin-top:12px">
+              <div class="short-actions">
+                <button class="btn sm primary" id="shortCheckBtn" style="display:none">채점하기</button>
                 <button class="btn sm ghost" id="shortShowBtn">정답 보기</button>
+                <!-- 자동 채점이 '틀림'이라고 했지만 표기만 다른 정답일 때 — 사람이 최종 판단 -->
+                <button class="btn sm ghost" id="shortOverride" style="display:none" title="허용 표기에 없는 정답이면 정답으로 바꿔요">표기만 다른 정답이에요 → 정답 처리</button>
               </div>
             </div>
 
@@ -162,9 +167,9 @@
     </div>
   </div>
 
-  <script src="js/common.js?v=202610130534"></script>
-  <script src="js/codehl.js?v=202610130534"></script>
-  <script src="js/pen.js?v=202610130534"></script>
-  <script src="js/exam.js?v=202610130534"></script>
+  <script src="js/common.js?v=202610150032"></script>
+  <script src="js/codehl.js?v=202610150032"></script>
+  <script src="js/pen.js?v=202610150032"></script>
+  <script src="js/exam.js?v=202610150032"></script>
 </body>
 </html>

@@ -429,6 +429,27 @@ th.is-corner .row { text-align: left; }
   background: var(--green-soft); color: var(--green); font-weight: 700;
 }
 .self-grade { display: flex; gap: 8px; margin-top: 12px; }
+.short-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* 다중 빈칸 — 라벨(①, (가), ㄱ. …)별로 한 칸씩 */
+.short-multi { display: flex; flex-direction: column; gap: 8px; }
+.short-multi .blank { display: flex; align-items: center; gap: 10px; }
+.short-multi .blank .lbl {
+  flex: 0 0 auto; min-width: 2.2em; text-align: center; font-weight: 800; color: var(--accent-ink);
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-size: 0.9rem;
+}
+.short-multi .blank input {
+  flex: 1 1 auto; min-width: 0; border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface-2); color: var(--ink); padding: 10px 14px; font-family: inherit; font-size: 0.97rem;
+}
+.short-multi .blank input:focus { outline: none; border-color: var(--accent); }
+/* 채점 후 칸별 결과 */
+.short-multi .blank.ok input { border-color: var(--green); background: var(--green-soft); }
+.short-multi .blank.no input { border-color: var(--red); background: var(--red-soft); }
+.short-box textarea.ok { border-color: var(--green); background: var(--green-soft); }
+.short-box textarea.no { border-color: var(--red); background: var(--red-soft); }
+/* 자동 채점 안내 (정답 표시줄 아래 작은 글씨) */
+.short-answer-reveal small { display: block; margin-top: 6px; font-weight: 500; color: var(--ink-3); }
 
 /* feedback */
 .q-feedback { margin-top: 18px; padding: 14px 18px; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.95rem; display: none; }
